@@ -83,6 +83,7 @@ case $_distro in
     *)                       ICON="";;
 esac
 
+export TERM_FONT="JetBrainsMonoNL Nerd Font"
 export STARSHIP_DISTRO="$ICON"
 
 eval "$(starship init zsh)"
