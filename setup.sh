@@ -2,7 +2,7 @@
 
 # Install Zsh
 sudo apt update
-sudo apt install -y curl git zsh
+sudo apt install -y zsh
 
 # Install Visual Studio Code
 sudo apt install -y apt-transport-https
