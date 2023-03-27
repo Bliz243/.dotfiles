@@ -24,7 +24,7 @@ sudo cp JetBrainsMono-font/*.ttf /usr/local/share/fonts
 sudo fc-cache -f -v
 
 # Install starship
-curl -fsSL https://starship.rs/install.sh | sh
+yes Y | curl -fsSL https://starship.rs/install.sh | sh
 
 # Install exa
 sudo apt update
@@ -42,7 +42,7 @@ git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-m
 
 # Symlink .zshrc and starship.toml to the home directory
 ln -sf "$(pwd)/zsh/.zshrc" "$HOME/.zshrc"
-ln -sf "$(pwd)/starship.toml" "$HOME/.config/starship.toml"
+ln -sf "$(pwd)/starship.toml" "$HOME/.config"
 mkdir -p "$HOME/.config/Code/User"
 ln -sf "$(pwd)/vscode/settings.json" "$HOME/.config/Code/User/settings.json"
 
@@ -52,5 +52,12 @@ if [ -f vscode-extensions.txt ]; then
   done < vscode-extensions.txt
 fi
 
+# Set git credentials
+git config --global user.email "Freazy243@gmail.com"
+git config --global user.name "Bliz243"
+
 # Change the default shell to zsh
 chsh -s $(which zsh)
+
+# Go into zsh
+zsh
