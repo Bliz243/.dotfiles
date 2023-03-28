@@ -92,7 +92,6 @@ fi
 # Symlink .zshrc and starship.toml to the home directory
 ln -sf "$(pwd)/zsh/.zshrc" "$HOME/.zshrc"
 cp $pwd/sharship.toml $HOME/.config
-ln -sf "$(pwd)/starship.toml" "$HOME/.config/starship.toml"
 
 if [ -f vscode-extensions.txt ]; then
   while read -r extension; do
