@@ -24,7 +24,7 @@
     src: "{{ ansible_env.HOME }}/.dotfiles/zsh/.zshrc"
     dest: "{{ ansible_env.HOME }}/.zshrc"
     mode: '0644'
-    force: no
+    force: yes
 
 - name: Install Oh My Zsh
   become: no
