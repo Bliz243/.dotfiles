@@ -1,0 +1,32 @@
+---
+- name: Ensure fonts directory exists
+  file:
+    path: "{{ fonts_dir }}"
+    state: directory
+    mode: '0755'
+  become: no
+
+- name: Install JetBrains Mono fonts
+  copy:
+    src: "{{ item }}"
+    dest: "{{ fonts_dir }}/{{ item | basename }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', dotfiles_dir + '/fonts/JetBrainsMono-font/*.ttf', wantlist=True) }}"
+
+- name: List JetBrains Mono fonts in fonts_dir
+  command: ls -l "{{ fonts_dir }}" | grep "JetBrains Mono"
+  register: jetbrains_fonts_list
+  ignore_errors: yes
+
+- name: Debug JetBrains Mono fonts in fonts_dir
+  debug:
+    var: jetbrains_fonts_list.stdout_lines
+
+- name: Rebuild font cache on Linux
+  command: fc-cache -f -v
+  when:
+    - ansible_os_family != 'Darwin'
+    - fonts_dir is defined and fonts_dir != ''
+  become: no
+  environment:
+    HOME: "{{ ansible_env.HOME }}"

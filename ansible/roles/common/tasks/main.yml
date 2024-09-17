@@ -1,0 +1,33 @@
+---
+- name: Install common packages
+  become: yes
+  vars:
+    common_packages:
+      - git
+      - fontconfig
+      - exa
+      - curl
+      - wget
+      - tree
+      - htop
+      - alacritty
+      - tmux
+  block:
+    - name: Update package manager cache
+      package:
+        update_cache: yes
+
+    - name: Install common packages individually
+      package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ common_packages }}"
+      ignore_errors: yes
+      register: package_install_results
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Report failed package installations
+      debug:
+        msg: "Failed to install packages: {{ package_install_results.results | selectattr('failed', 'equalto', true) | map(attribute='item') | list }}"
+      when: package_install_results is defined and package_install_results.results | selectattr('failed', 'equalto', true) | list | length > 0

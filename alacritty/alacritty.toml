@@ -1,0 +1,132 @@
+[bell]
+animation = "EaseOut"
+duration = 150
+
+[colors.bright]
+black = "0x414868"
+blue = "0x7aa2f7"
+cyan = "0x7dcfff"
+green = "0x9ece6a"
+magenta = "0xf78c6c"
+red = "0xf7768e"
+white = "0xc0caf5"
+yellow = "0xe0af68"
+
+[colors.cursor]
+cursor = "0xa9b1d6"
+text = "0x1e1e2e"
+
+[colors.normal]
+black = "0x1e1e2e"
+blue = "0x7aa2f7"
+cyan = "0x7dcfff"
+green = "0x9ece6a"
+magenta = "0xf78c6c"
+red = "0xf7768e"
+white = "0xa9b1d6"
+yellow = "0xe0af68"
+
+[colors.primary]
+background = "0x1e1e2e"
+foreground = "0xc0caf5"
+
+[colors.selection]
+background = "0x7aa2f7"
+text = "0x000000"
+
+[cursor.style]
+blinking = true
+shape = "Block"
+
+[font]
+fallback = ["JetBrains Mono", "Source Code Pro"]
+family = "Fira Code"
+glyph_padding = 1
+size = 12.0
+thin_strokes = false
+use_thin_strokes = false
+
+[font.glyph_offset]
+x = 0
+y = 0
+
+[font.offset]
+x = 0
+y = 0
+
+[[keyboard.bindings]]
+action = "Copy"
+key = "C"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "Quit"
+key = "Q"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "F"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "SplitHorizontal"
+key = "H"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "SplitVertical"
+key = "V"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "ScrollPageUp"
+key = "Up"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "ScrollPageDown"
+key = "Down"
+mods = "Control|Shift"
+
+[mouse]
+enabled = true
+
+[mouse.url]
+launcher = "xdg-open"
+
+[performance]
+max_frames = 60
+
+[performance.gpu]
+renderer = "opengl"
+
+[performance.texture]
+cache_size = 1000
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[shell]
+args = ["--login"]
+program = "/bin/zsh"
+
+[window]
+decorations = "full"
+dynamic_title = true
+opacity = 0.95
+start_maximized = false
+
+[window.dimensions]
+columns = 120
+lines = 30
+
+[window.padding]
+x = 10
+y = 10

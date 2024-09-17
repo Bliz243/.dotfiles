@@ -1,0 +1,41 @@
+---
+- name: Install zsh
+  become: yes
+  package:
+    name: zsh
+    state: present
+
+- name: Check if .zshrc exists
+  stat:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+  register: zshrc_stat
+
+- name: Backup existing .zshrc
+  copy:
+    src: "{{ ansible_env.HOME }}/.zshrc"
+    dest: "{{ ansible_env.HOME }}/.zshrc.bak"
+    remote_src: yes
+    mode: '0644'
+  when: zshrc_stat.stat.exists
+
+- name: Copy .zshrc from dotfiles
+  become: no
+  copy:
+    src: "{{ ansible_env.HOME }}/.dotfiles/zsh/.zshrc"
+    dest: "{{ ansible_env.HOME }}/.zshrc"
+    mode: '0644'
+    force: no
+
+- name: Install Oh My Zsh
+  become: no
+  git:
+    repo: https://github.com/ohmyzsh/ohmyzsh.git
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    update: no
+
+- name: Clone zsh-autosuggestions plugin
+  become: yes
+  git:
+    repo: https://github.com/zsh-users/zsh-autosuggestions.git
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+    update: no

@@ -1,0 +1,42 @@
+---
+# roles/starship/tasks/main.yml
+
+- name: Check if Starship is already installed
+  stat:
+    path: /usr/local/bin/starship
+  register: starship_installed
+
+- name: Download Starship installation script
+  get_url:
+    url: https://starship.rs/install.sh
+    dest: /tmp/install_starship.sh
+    mode: '0755'
+  become: yes
+  when: not starship_installed.stat.exists
+  register: download_starship_script
+
+- name: Install Starship prompt
+  shell: sh /tmp/install_starship.sh -y
+  args:
+    creates: "/usr/local/bin/starship"
+  become: yes
+  when: download_starship_script is changed
+
+- name: Remove Starship installation script
+  file:
+    path: /tmp/install_starship.sh
+    state: absent
+  become: yes
+  when: download_starship_script is changed
+
+- name: Create Starship config directory
+  file:
+    path: "{{ ansible_env.HOME }}/.config/starship"
+    state: directory
+    mode: '0755'
+
+- name: Copy Starship configuration
+  copy:
+    src: "{{ dotfiles_dir }}/starship/starship.toml"
+    dest: "{{ ansible_env.HOME }}/.config/starship.toml"
+    mode: '0644'
