@@ -81,17 +81,6 @@ else
     exit 1
 fi
 
-# Clone the dotfiles repository
-if [ ! -d "$HOME/.dotfiles" ]; then
-    echo "Cloning dotfiles repository..."
-    git clone https://github.com/yourusername/dotfiles.git "$HOME/.dotfiles"
-else
-    echo "Dotfiles repository already exists. Pulling latest changes..."
-    git -C "$HOME/.dotfiles" pull
-fi
-
-cd "$HOME/.dotfiles"
-
 # Install Ansible roles and collections if required
 if [ -f "ansible/requirements.yml" ]; then
     echo "Installing Ansible roles and collections..."
