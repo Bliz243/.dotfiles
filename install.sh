@@ -1,104 +1,94 @@
 #!/bin/bash
 
-# Detect the operating system
-OS_NAME=$(uname)
+# Exit immediately if a command exits with a non-zero status
+set -e
 
-# Install common tools
-install_common() {
-  # Install JetBrains Mono font
-  sudo cp JetBrainsMono-font/*.ttf /usr/local/share/fonts
-  sudo fc-cache -f -v
+# Detect the Operating System and Distribution
+OS="$(uname -s)"
+DISTRO=""
 
-  # Install starship
-  curl -fsSL https://starship.rs/install.sh | sh
+if [ "$OS" == "Linux" ]; then
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        DISTRO=$ID
+    fi
+fi
 
-  # Install oh-my-zsh
-  yes Y | sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+echo "Detected OS: $OS"
+echo "Detected Distro: $DISTRO"
 
-  # Install zsh-plugins
-  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+# Function to install Git and Ansible on macOS
+install_mac() {
+    # Install Xcode Command Line Tools
+    if ! xcode-select -p &>/dev/null; then
+        echo "Installing Xcode Command Line Tools..."
+        xcode-select --install
+        # Wait until the tools are installed
+        until xcode-select -p &>/dev/null; do
+            sleep 5
+        done
+    fi
+
+    # Install Homebrew
+    if ! command -v brew &>/dev/null; then
+        echo "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+
+    # Install Git and Ansible
+    echo "Installing Git and Ansible..."
+    brew install git ansible
 }
 
-if [ "$OS_NAME" = "Linux" ]; then
-  # Assume Ubuntu/Debian for now
+# Function to install Git and Ansible on Debian/Ubuntu
+install_debian() {
+    echo "Updating package list..."
+    sudo apt update
 
-  # Install Zsh
-  sudo apt update
-  sudo apt install -y zsh
+    echo "Installing Git and Ansible..."
+    sudo apt install -y git ansible
+}
 
-  # Install Visual Studio Code
-  sudo apt install -y apt-transport-https
-  curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
-  echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
-  sudo apt update
-  sudo apt install -y code
+# Function to install Git and Ansible on Arch Linux
+install_arch() {
+    echo "Updating package list..."
+    sudo pacman -Syu --noconfirm
 
-  # Install font-logos
-  wget -O font-logos.zip https://github.com/lukas-w/font-logos/archive/refs/heads/master.zip
-  unzip font-logos.zip
-  sudo mkdir -p /usr/local/share/fonts
-  sudo cp font-logos-master/*.ttf /usr/local/share/fonts
-  rm -rf font-logos.zip font-logos-master
-  sudo fc-cache -f -v
+    echo "Installing Git and Ansible..."
+    sudo pacman -S --noconfirm git ansible
+}
 
-  install_common
+# Function to install Git and Ansible on Fedora/RHEL
+install_fedora() {
+    echo "Updating package list..."
+    sudo dnf makecache
 
-  # Install exa
-  sudo apt update
-  sudo apt install -y unzip
-  EXA_VERSION=$(curl -s "https://api.github.com/repos/ogham/exa/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
-  curl -Lo exa.zip "https://github.com/ogham/exa/releases/latest/download/exa-linux-x86_64-v${EXA_VERSION}.zip"
-  sudo unzip -q exa.zip bin/exa -d /usr/local
-  rm -rf exa.zip
+    echo "Installing Git and Ansible..."
+    sudo dnf install -y git ansible
+}
 
-  # Configure symlinks
-  mkdir -p "$HOME/.config/Code/User"
-  ln -sf "$(pwd)/vscode/settings.json" "$HOME/.config/Code/User/settings.json"
-
-elif [ "$OS_NAME" = "Darwin" ]; then
-  # macOS setup
-
-  # Install Homebrew if not installed
-  if ! command -v brew >/dev/null; then
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
-
-  # Install Zsh
-  brew install zsh
-
-  # Install Visual Studio Code
-  brew install --cask visual-studio-code
-
-  # Install font-logos
-  wget -O font-logos.zip https://github.com/lukas-w/font-logos/archive/refs/heads/master.zip
-  unzip font-logos.zip
-  cp font-logos-master/*.ttf ~/Library/Fonts/
-  rm -rf font-logos.zip font-logos-master
-
-  install_common
-
-  # Install exa
-  brew install exa
-
-  # Configure symlinks
-  mkdir -p "$HOME/Library/Application Support/Code/User"
-  ln -sf "$(pwd)/vscode/settings.json" "$HOME/Library/Application Support/Code/User/settings.json"
-
+# Install Git and Ansible based on OS
+if [ "$OS" == "Darwin" ]; then
+    install_mac
+elif [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ]; then
+    install_debian
+elif [ "$DISTRO" == "arch" ]; then
+    install_arch
+elif [ "$DISTRO" == "fedora" ] || [ "$DISTRO" == "rhel" ]; then
+    install_fedora
 else
-  echo "Unsupported operating system: $OS_NAME"
-  exit 1
+    echo "Unsupported OS or distribution."
+    exit 1
 fi
 
-# Symlink .zshrc and starship.toml to the home directory
-ln -sf "$(pwd)/zsh/.zshrc" "$HOME/.zshrc"
-cp $pwd/sharship.toml $HOME/.config
-
-if [ -f vscode-extensions.txt ]; then
-  while read -r extension; do
-    code --install-extension "$extension"
-  done < vscode-extensions.txt
+# Install Ansible roles and collections if required
+if [ -f "ansible/requirements.yml" ]; then
+    echo "Installing Ansible roles and collections..."
+    ansible-galaxy install -r ansible/requirements.yml
 fi
 
-# Change the default shell to zsh
-chsh -s $(which zsh)
+# Run the Ansible playbook
+echo "Running Ansible playbook..."
+ansible-playbook -i ansible/inventories/hosts ansible/setup-new-machine.yml
 
+echo "Setup complete!"
