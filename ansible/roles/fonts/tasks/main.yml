@@ -13,11 +13,6 @@
     mode: '0644'
   loop: "{{ lookup('fileglob', dotfiles_dir + '/fonts/JetBrainsMono-font/*.ttf', wantlist=True) }}"
 
-- name: List JetBrains Mono fonts in fonts_dir
-  command: ls -l "{{ fonts_dir }}" | grep "JetBrains Mono"
-  register: jetbrains_fonts_list
-  ignore_errors: yes
-
 - name: Debug JetBrains Mono fonts in fonts_dir
   debug:
     var: jetbrains_fonts_list.stdout_lines

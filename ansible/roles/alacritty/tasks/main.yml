@@ -1,88 +1,117 @@
-- name: Install dependencies for Alacritty
-  package:
-    name:
-      - cmake
-      - pkg-config
-      - libfreetype6-dev
-      - libfontconfig1-dev
-      - libxcb-xfixes0-dev
-      - libxkbcommon-dev
-      - python3
-      - python3-pip
-      - curl
-    state: present
-  become: yes
-
-- name: Check if Rust is already installed
+- name: Check if Alacritty is already installed
   stat:
-    path: "{{ ansible_env.HOME }}/.cargo/bin/rustc"
-  register: rustc_installed
+    path: /usr/local/bin/alacritty
+    follow: yes
+  register: alacritty_stat
 
-- name: Download Rustup installation script
-  get_url:
-    url: https://sh.rustup.rs
-    dest: /tmp/rustup.sh
-    mode: '0755'
-  when: not rustc_installed.stat.exists
+- block:
+    - name: Install dependencies for Alacritty
+      package:
+        name:
+          - cmake
+          - pkg-config
+          - libfreetype6-dev
+          - libfontconfig1-dev
+          - libxcb-xfixes0-dev
+          - libxkbcommon-dev
+          - python3
+          - python3-pip
+          - curl
+        state: present
+      become: yes
+
+    # 2.2 Check if Rust is already installed
+    - name: Check if Rust is already installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.cargo/bin/rustc"
+      register: rustc_installed
+
+    # 2.3 Download Rustup installation script
+    - name: Download Rustup installation script
+      get_url:
+        url: https://sh.rustup.rs
+        dest: /tmp/rustup.sh
+        mode: '0755'
+      when: not rustc_installed.stat.exists
+      become: no
+      register: download_rustup
+
+    # 2.4 Install Rust using rustup
+    - name: Install Rust using rustup
+      shell: sh /tmp/rustup.sh -y
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/rustc"
+        executable: /bin/sh
+      when: download_rustup is changed
+      become: no
+
+    # 2.5 Remove Rustup installation script
+    - name: Remove Rustup installation script
+      file:
+        path: /tmp/rustup.sh
+        state: absent
+      when: download_rustup is changed
+      become: no
+
+    # 2.6 Ensure Cargo bin directory is in PATH for build
+    - name: Ensure Cargo bin directory is in PATH for build
+      set_fact:
+        cargo_bin_path: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    # 2.7 Clone Alacritty repository
+    - name: Clone Alacritty repository
+      git:
+        repo: https://github.com/alacritty/alacritty.git
+        dest: "{{ ansible_env.HOME }}/alacritty"
+        version: master
+      become: no
+
+    # 2.8 Build Alacritty
+    - name: Build Alacritty
+      shell: cargo build --release
+      args:
+        chdir: "{{ ansible_env.HOME }}/alacritty"
+      environment:
+        PATH: "{{ cargo_bin_path }}"
+      become: no
+
+    # 2.9 Copy Alacritty binary to /usr/local/bin
+    - name: Copy Alacritty binary to /usr/local/bin
+      copy:
+        src: "{{ ansible_env.HOME }}/alacritty/target/release/alacritty"
+        dest: /usr/local/bin/alacritty
+        mode: '0755'
+      become: yes
+
+    # 2.10 Copy Alacritty desktop file
+    - name: Copy Alacritty desktop file
+      copy:
+        src: "{{ ansible_env.HOME }}/alacritty/extra/linux/Alacritty.desktop"
+        dest: /usr/share/applications/Alacritty.desktop
+        remote_src: yes
+      become: yes
+
+    # 2.11 Install Alacritty terminfo
+    - name: Install Alacritty terminfo
+      shell: tic -xe alacritty,alacritty-direct extra/alacritty.info
+      args:
+        chdir: "{{ ansible_env.HOME }}/alacritty"
+      become: yes
+
+    # 2.12 Clean up Alacritty source code
+    - name: Clean up Alacritty source code
+      file:
+        path: "{{ ansible_env.HOME }}/alacritty"
+        state: absent
+      become: no
+
+  when: not alacritty_stat.stat.exists
+  tags: install
+
+- name: Copy Alacritty from Dotfiles
   become: no
-  register: download_rustup
-
-- name: Install Rust using rustup
-  shell: sh /tmp/rustup.sh -y
-  args:
-    creates: "{{ ansible_env.HOME }}/.cargo/bin/rustc"
-    executable: /bin/sh
-  when: download_rustup is changed
-  become: no
-
-- name: Remove Rustup installation script
-  file:
-    path: /tmp/rustup.sh
-    state: absent
-  when: download_rustup is changed
-  become: no
-
-- name: Ensure Cargo bin directory is in PATH for build
-  set_fact:
-    cargo_bin_path: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-- name: Clone Alacritty repository
-  git:
-    repo: https://github.com/alacritty/alacritty.git
-    dest: "{{ ansible_env.HOME }}/alacritty"
-    version: master
-  become: no
-
-- name: Build Alacritty
-  shell: cargo build --release
-  args:
-    chdir: "{{ ansible_env.HOME }}/alacritty"
-  environment:
-    PATH: "{{ cargo_bin_path }}"
-  become: no
-
-- name: Copy Alacritty binary to /usr/local/bin
   copy:
-    src: "{{ ansible_env.HOME }}/alacritty/target/release/alacritty"
-    dest: /usr/local/bin/alacritty
-    mode: '0755'
-  become: yes
-
-- name: Copy Alacritty desktop file
-  copy:
-    src: "{{ ansible_env.HOME }}/alacritty/extra/linux/Alacritty.desktop"
-    dest: /usr/share/applications/Alacritty.desktop
-    remote_src: yes
-  become: yes
-
-- name: Install Alacritty terminfo
-  shell: tic -xe alacritty,alacritty-direct extra/alacritty.info
-  args:
-    chdir: "{{ ansible_env.HOME }}/alacritty"
-  become: yes
-
-- name: Clean up Alacritty source code
-  file:
-    path: "{{ ansible_env.HOME }}/alacritty"
-    state: absent
-  become: no
+    src: "{{ ansible_env.HOME }}/.dotfiles/alacritty/alacritty.toml"
+    dest: "{{ ansible_env.HOME }}/.config/alacritty"
+    mode: '0644'
+    force: yes
