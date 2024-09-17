@@ -1,4 +1,0 @@
-zsh_target_user: "{{ ansible_user | default('') }}"
-
-# Home directory of the target user. Determined dynamically if not provided.
-zsh_user_home: "{{ lookup('ansible.builtin.env', 'HOME') }}"

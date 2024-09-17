@@ -1,5 +1,0 @@
-# roles/zsh/vars/main.yml
-zsh_home: "{{ playbook_dir }}"
-zsh_dotfiles_dir: "{{ zsh_home }}/.dotfiles/zsh"
-zsh_zshrc_src: "{{ zsh_dotfiles_dir }}/.zshrc"
-zsh_zshrc_dest: "{{ zsh_home }}/.zshrc"
