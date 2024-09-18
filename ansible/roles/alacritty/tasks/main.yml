@@ -111,6 +111,6 @@
   become: no
   copy:
     src: "{{ ansible_env.HOME }}/.dotfiles/alacritty/alacritty.toml"
-    dest: "{{ ansible_env.HOME }}/.config/alacritty"
+    dest: "{{ ansible_env.HOME }}/.config/alacritty.toml"
     mode: '0644'
     force: yes

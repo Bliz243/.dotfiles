@@ -1,0 +1,12 @@
+---
+- name: Ensure tmux is installed
+  package:
+    name: tmux
+    state: present
+  become: true
+
+- name: Copy tmux configuration file
+  template:
+    src: "{{ dotfiles_dir }}/tmux/.tmux.conf"
+    dest: "{{ ansible_env.HOME }}/.tmux.conf"
+    mode: '0644'

@@ -1,5 +1,7 @@
 # Fig pre block. Keep at the top of this file.
 [[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]] && . "$HOME/.fig/shell/zshrc.pre.zsh"
+
+#if [ -z "$TMUX" ]; then tmux attach -t default || tmux new -s default; fi
 # Path to your oh-my-zsh configuration.
 ZSH=$HOME/.oh-my-zsh
 
@@ -14,7 +16,7 @@ plugins=(git github brew zsh-autosuggestions kubectl docker)
 
 source $ZSH/oh-my-zsh.sh
 
-alias ls="exa --icons --group-directories-first"
+alias ls="exa --group-directories-first"
 alias ll="exa --icons --group-directories-first -l"
 alias g="goto"
 alias grep='grep --color'
@@ -57,7 +59,8 @@ case $_distro in
     *)                       ICON="";;
 esac
 
+export TERM="xterm-256color"
 export TERM_FONT="JetBrainsMonoNL Nerd Font"
-export STARSHIP_DISTRO="$ICON"
+export STARSHIP_DISTRO="$ICON "
 
 eval "$(starship init zsh)"

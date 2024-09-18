@@ -1,6 +1,4 @@
 ---
-# roles/starship/tasks/main.yml
-
 - name: Check if Starship is already installed
   stat:
     path: /usr/local/bin/starship
@@ -28,12 +26,6 @@
     state: absent
   become: yes
   when: download_starship_script is changed
-
-- name: Create Starship config directory
-  file:
-    path: "{{ ansible_env.HOME }}/.config/starship"
-    state: directory
-    mode: '0755'
 
 - name: Copy Starship configuration
   copy:

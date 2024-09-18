@@ -81,14 +81,8 @@ else
     exit 1
 fi
 
-# Install Ansible roles and collections if required
-if [ -f "ansible/requirements.yml" ]; then
-    echo "Installing Ansible roles and collections..."
-    ansible-galaxy install -r ansible/requirements.yml
-fi
-
 # Run the Ansible playbook
 echo "Running Ansible playbook..."
-ansible-playbook -i ansible/inventories/hosts ansible/setup-new-machine.yml
+ansible-playbook ansible/setup-new-machine.yml
 
 echo "Setup complete!"
