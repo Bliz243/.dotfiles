@@ -1,7 +1,7 @@
 # Fig pre block. Keep at the top of this file.
 [[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]] && . "$HOME/.fig/shell/zshrc.pre.zsh"
 
-#if [ -z "$TMUX" ]; then tmux attach -t default || tmux new -s default; fi
+if [ -z "$TMUX" ]; then tmux attach -t default || tmux new -s default; fi
 # Path to your oh-my-zsh configuration.
 ZSH=$HOME/.oh-my-zsh
 
