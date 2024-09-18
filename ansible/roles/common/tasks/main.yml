@@ -5,7 +5,7 @@
     common_packages:
       - git
       - fontconfig
-      - lsd
+      - exa
       - curl
       - wget
       - tree
