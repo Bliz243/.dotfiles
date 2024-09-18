@@ -16,7 +16,7 @@ plugins=(git github brew zsh-autosuggestions kubectl docker)
 
 source $ZSH/oh-my-zsh.sh
 
-alias ls="exa --group-directories-first"
+alias ls="exa --icons --group-directories-first"
 alias ll="exa --icons --group-directories-first -l"
 alias g="goto"
 alias grep='grep --color'
