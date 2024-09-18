@@ -45,6 +45,3 @@ nnoremap <C-n> :NERDTreeToggle<CR>
 
 " Configure fzf
 nnoremap <C-p> :Files<CR>
-
-" Set colorscheme
-colorscheme gruvbox

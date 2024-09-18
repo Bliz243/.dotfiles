@@ -27,6 +27,13 @@
   become: yes
   when: download_starship_script is changed
 
+- name: Create Starship config directory
+  file:
+    path: "{{ ansible_env.HOME }}/.config"
+    state: directory
+    mode: '0755'
+    force: true
+
 - name: Copy Starship configuration
   copy:
     src: "{{ dotfiles_dir }}/starship/starship.toml"
