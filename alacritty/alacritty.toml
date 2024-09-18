@@ -1,6 +1,7 @@
 [bell]
-animation = "EaseOut"
-duration = 150
+animation = "EaseOutExpo"
+duration = 0
+color = "#ffffff"
 
 [colors.bright]
 black = "0x414868"
@@ -34,20 +35,15 @@ foreground = "0xc0caf5"
 background = "0x7aa2f7"
 text = "0x000000"
 
-[cursor.style]
+[cursor]
+style = "Block"
 blinking = true
-shape = "Block"
 
 [font]
 size = 12.0
-thin_strokes = false
-use_thin_strokes = false
 
+[font.normal]
 family = "JetBrainsMonoNL Nerd Font"
-
-fallback = ["JetBrainsMonoNL NF", "JetBrainsMonoNL Nerd Font Mono", "Fira Code", "Source Code Pro"]
-
-glyph_padding = 1
 
 [font.glyph_offset]
 x = 0
@@ -78,16 +74,6 @@ key = "F"
 mods = "Control|Shift"
 
 [[keyboard.bindings]]
-action = "SplitHorizontal"
-key = "H"
-mods = "Control|Shift"
-
-[[keyboard.bindings]]
-action = "SplitVertical"
-key = "V"
-mods = "Control|Shift"
-
-[[keyboard.bindings]]
 action = "ScrollPageUp"
 key = "Up"
 mods = "Control|Shift"
@@ -99,18 +85,6 @@ mods = "Control|Shift"
 
 [mouse]
 enabled = true
-
-[mouse.url]
-launcher = "xdg-open"
-
-[performance]
-max_frames = 60
-
-[performance.gpu]
-renderer = "opengl"
-
-[performance.texture]
-cache_size = 1000
 
 [scrolling]
 history = 10000
@@ -124,7 +98,6 @@ program = "/bin/zsh"
 decorations = "full"
 dynamic_title = true
 opacity = 0.95
-start_maximized = false
 
 [window.dimensions]
 columns = 120
