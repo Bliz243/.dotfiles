@@ -55,3 +55,15 @@ function weather() {
 function cheat() {
   curl -s "cheat.sh/$1"
 }
+
+# Reload shell configuration
+function reload() {
+  echo "♻️  Reloading shell configuration..."
+  source ~/.zshrc
+  echo "✓ Shell configuration reloaded!"
+}
+
+# Quick directory tree view
+function tre() {
+  tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX
+}

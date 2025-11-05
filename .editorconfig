@@ -1,0 +1,41 @@
+# EditorConfig: https://editorconfig.org
+
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Shell scripts
+[*.{sh,bash,zsh}]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+
+# YAML (Ansible)
+[*.{yml,yaml}]
+indent_size = 2
+
+# Vim
+[*.vim]
+indent_size = 2
+
+# Makefiles use tabs
+[Makefile]
+indent_style = tab
+
+# Python
+[*.py]
+indent_size = 4
+
+# Go
+[*.go]
+indent_style = tab

@@ -15,6 +15,9 @@ vault-password.txt
 local/
 *.local
 *_local.*
+stow/zsh/.zsh/99-local.zsh
+*/.gitconfig.local
+*/.env
 
 # OS-specific files
 .DS_Store
