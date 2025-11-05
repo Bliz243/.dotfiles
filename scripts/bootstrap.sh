@@ -7,7 +7,13 @@
 set -e
 
 DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/Bliz243/.dotfiles.git}"
-DOTFILES_DIR="$HOME/.dotfiles"
+# Auto-detect dotfiles directory if already cloned, otherwise use HOME
+if [ -f "${BASH_SOURCE[0]}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
+else
+    DOTFILES_DIR="$HOME/.dotfiles"
+fi
 
 # Colors for output
 GREEN='\033[0;32m'

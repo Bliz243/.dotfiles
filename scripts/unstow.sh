@@ -5,7 +5,9 @@
 
 set -e
 
-DOTFILES_DIR="$HOME/.dotfiles"
+# Auto-detect dotfiles directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 STOW_DIR="$DOTFILES_DIR/stow"
 
 # Colors for output
