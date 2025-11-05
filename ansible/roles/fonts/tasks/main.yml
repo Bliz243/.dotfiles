@@ -10,19 +10,49 @@
     mode: '0755'
   become: no
 
-- name: List font files in dotfiles
-  find:
-    paths: "{{ dotfiles_dir }}/fonts/JetBrainsMono-font"
-    patterns: "*.ttf"
-  register: font_files
-
-- name: Install JetBrains Mono fonts
-  copy:
-    src: "{{ item.path }}"
-    dest: "{{ fonts_dir }}/{{ item.path | basename }}"
-    mode: '0644'
+- name: Create temporary download directory
+  tempfile:
+    state: directory
+    suffix: fonts
+  register: fonts_temp_dir
   become: no
-  loop: "{{ font_files.files }}"
+
+- name: Check if JetBrains Mono Nerd Font is already installed
+  stat:
+    path: "{{ fonts_dir }}/JetBrainsMonoNerdFont-Regular.ttf"
+  register: font_check
+
+- name: Download JetBrains Mono Nerd Font
+  get_url:
+    url: https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+    dest: "{{ fonts_temp_dir.path }}/JetBrainsMono.zip"
+    mode: '0644'
+  when: not font_check.stat.exists
+  become: no
+
+- name: Install unzip if not present
+  package:
+    name: unzip
+    state: present
+  when: not font_check.stat.exists
+  ignore_errors: yes
+
+- name: Extract JetBrains Mono fonts
+  unarchive:
+    src: "{{ fonts_temp_dir.path }}/JetBrainsMono.zip"
+    dest: "{{ fonts_dir }}"
+    remote_src: yes
+    include:
+      - "*.ttf"
+  when: not font_check.stat.exists
+  become: no
+
+- name: Clean up temporary directory
+  file:
+    path: "{{ fonts_temp_dir.path }}"
+    state: absent
+  when: fonts_temp_dir.path is defined
+  become: no
 
 - name: Rebuild font cache on Linux
   command: fc-cache -f -v

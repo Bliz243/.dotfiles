@@ -21,7 +21,7 @@
     update: no
 
 - name: Clone zsh-autosuggestions plugin
-  become: yes
+  become: no
   git:
     repo: https://github.com/zsh-users/zsh-autosuggestions.git
     dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"

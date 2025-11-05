@@ -129,10 +129,9 @@
   "files.autoSave": "afterDelay",
   "terminal.explorerKind": "external",
   "remote.SSH.showLoginTerminal": true,
-  "remote.SSH.configFile": "C:\\Users\\jacob\\.ssh\\config",
-  "remote.SSH.remotePlatform": {
-    "173.249.22.157": "linux"
-  },
+  // Note: Set your SSH config path in local VS Code settings (not in dotfiles)
+  // "remote.SSH.configFile": "/path/to/.ssh/config",
+  // "remote.SSH.remotePlatform": { "your-host": "linux" },
   "github.copilot.advanced": {},
   "github.copilot.enable": {
     "*": true,
@@ -144,7 +143,8 @@
   "window.zoomLevel": 1,
   "dotnet.help.firstView": "gettingStarted",
   "extensions.confirmedUriHandlerExtensionIds": ["ms-dotnettools.dotnet-interactive-vscode", "ms-dotnettools.vscode-dotnet-pack"],
-  "chatgpt.gpt3.apiKey": "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",
+  // SECURITY: Set API keys in local VS Code settings (not in dotfiles) or use environment variables
+  // "chatgpt.gpt3.apiKey": "your-api-key-here",
   "chatgpt.authenticationType": "Google Authentication",
   "chatgpt.gpt3.maxTokens": 2048
 }
