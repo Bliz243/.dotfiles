@@ -12,9 +12,9 @@
 - 🤖 **Ansible Automation** - Consistent setup across all machines
 - 📦 **Modular Design** - Load only what you need
 - 🔐 **Security First** - No secrets in version control
-- 🧪 **Tested & Validated** - Health checks and automated testing
-- 📚 **Well Documented** - Comprehensive guides included
-- ⚡ **Performance Optimized** - Fast shell startup (< 1s)
+- 🖥️ **Multi-Machine Support** - Mac, Linux, WSL2 (servers skip GUI tools)
+- 📚 **Simple & Practical** - YAGNI principle, no overengineering
+- ⚡ **Performance Optimized** - Fast shell startup
 
 ## 🎯 Quick Start
 
@@ -94,11 +94,9 @@ That's it! See [docs/INSTALL.md](docs/INSTALL.md) for detailed instructions.
 │   └── roles/                # Modular roles
 ├── scripts/                   # Management scripts
 │   ├── bootstrap.sh          # One-command install
-│   ├── stow.sh               # Stow packages
+│   ├── stow.sh               # Stow packages (with auto-backup)
 │   ├── unstow.sh             # Remove symlinks
 │   ├── restow.sh             # Refresh symlinks
-│   ├── health-check.sh       # Validate setup
-│   ├── test.sh               # Run tests
 │   └── update.sh             # Update everything
 ├── docs/                      # Documentation
 │   ├── INSTALL.md
@@ -117,12 +115,20 @@ That's it! See [docs/INSTALL.md](docs/INSTALL.md) for detailed instructions.
 
 ```bash
 make help       # Show all available commands
-make install    # Full installation
+make install    # Full installation (auto-detects machine type)
+make stow       # Symlink dotfiles (with auto-backup)
+make sync       # Pull latest changes and restow
+make push       # Commit and push changes (interactive)
 make update     # Update everything
-make health     # Run health check
-make stow       # Symlink dotfiles
-make test       # Run validation
 ```
+
+### Machine Type Detection
+
+Installation automatically detects your machine type:
+- **Workstation** (Mac/WSL): Installs all tools including GUI apps
+- **Server** (Linux headless): Skips GUI tools (Alacritty, fonts) for faster setup
+
+No prompts needed - just `make install` and go!
 
 ### Stow Management
 
@@ -185,12 +191,27 @@ Instead of one huge `.zshrc`, configs are split into focused modules. Benefits:
 ~/.zshrc -> ~/.dotfiles/stow/zsh/.zshrc
 ```
 
-## 🚀 Advanced Usage
+## 🚀 Multi-Machine Workflow
 
-### Sync Across Machines
+Perfect for managing dotfiles across Mac, WSL2, and Linux servers:
+
+### Setup on New Machine
 
 ```bash
-make sync    # Pull latest and restow
+git clone https://github.com/Bliz243/.dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+make install    # Auto-detects workstation vs server
+```
+
+### Sync Changes Across Machines
+
+```bash
+# On Machine A: Made config changes
+vim ~/.dotfiles/stow/zsh/.zsh/02-aliases.zsh
+make push       # Commits and pushes to git (interactive)
+
+# On Machine B: Get those changes
+make sync       # Pulls and restows automatically
 ```
 
 ### Update Everything
@@ -201,10 +222,30 @@ make update
 
 Updates: Dotfiles, Oh My Zsh, Neovim plugins, Starship, Rust tools, System packages
 
+### Auto-Backup
+
+Stow automatically backs up existing configs before creating symlinks:
+```bash
+make stow
+# ℹ Backing up existing configs to: /home/user/.dotfiles-backup-20231105-143022
+# ✓ Backed up 3 item(s)
+```
+
 ## 📝 Documentation
 
 - [Installation Guide](docs/INSTALL.md) - Detailed setup instructions
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues & fixes
+
+## 💡 Philosophy
+
+This dotfiles setup follows the **YAGNI principle** (You Aren't Gonna Need It):
+
+- ✅ **Simple over complex** - One command to install, no complicated wizards
+- ✅ **Practical over perfect** - Built for actual daily use, not theoretical scenarios
+- ✅ **Fast over feature-rich** - Servers skip GUI tools, saving 10-15 minutes
+- ✅ **Maintainable over clever** - No over-engineered scripts you'll never use
+
+**Result**: ~500 lines of code that do exactly what's needed, nothing more.
 
 ## 📄 License
 
