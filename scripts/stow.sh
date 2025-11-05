@@ -53,7 +53,45 @@ fi
 # Change to stow directory
 cd "$STOW_DIR"
 
+# Simple backup of existing configs (YAGNI - just the main ones)
+backup_existing() {
+    local backup_dir="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
+    local backed_up=0
+
+    # Only backup if files exist and aren't already symlinks
+    for file in .zshrc .tmux.conf .gitconfig; do
+        if [ -f "$HOME/$file" ] && [ ! -L "$HOME/$file" ]; then
+            if [ $backed_up -eq 0 ]; then
+                mkdir -p "$backup_dir"
+                print_info "Backing up existing configs to: $backup_dir"
+            fi
+            cp "$HOME/$file" "$backup_dir/"
+            ((backed_up++))
+        fi
+    done
+
+    # Backup config directories
+    for dir in .config/nvim .config/alacritty; do
+        if [ -d "$HOME/$dir" ] && [ ! -L "$HOME/$dir" ]; then
+            if [ $backed_up -eq 0 ]; then
+                mkdir -p "$backup_dir"
+                print_info "Backing up existing configs to: $backup_dir"
+            fi
+            cp -r "$HOME/$dir" "$backup_dir/"
+            ((backed_up++))
+        fi
+    done
+
+    if [ $backed_up -gt 0 ]; then
+        echo "$backup_dir" > "$DOTFILES_DIR/.last-backup"
+        print_success "Backed up $backed_up item(s)"
+    fi
+}
+
 print_header "🔗 Stowing Dotfiles"
+
+# Backup existing configs before stowing
+backup_existing
 
 # If arguments provided, stow only those packages
 if [ $# -gt 0 ]; then

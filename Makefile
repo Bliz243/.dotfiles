@@ -1,4 +1,4 @@
-.PHONY: help install update stow unstow restow health test clean backup
+.PHONY: help install update stow unstow restow health test clean backup sync push add-tool
 
 # Default target
 .DEFAULT_GOAL := help
@@ -55,14 +55,20 @@ backup: ## Backup current dotfiles before changes
 	@tar -czf $(HOME)/dotfiles-backup-$(shell date +%Y%m%d-%H%M%S).tar.gz -C $(HOME) .dotfiles
 	@echo "✨ Backup created at $(HOME)/dotfiles-backup-$(shell date +%Y%m%d-%H%M%S).tar.gz"
 
-git-status: ## Show git status
-	@cd $(DOTFILES_DIR) && git status
-
-git-pull: ## Pull latest changes
-	@cd $(DOTFILES_DIR) && git pull
-
-git-push: ## Push local changes
-	@cd $(DOTFILES_DIR) && git push
-
-sync: git-pull restow ## Sync from remote and restow
+sync: ## Pull latest changes and restow
+	@echo "🔄 Syncing dotfiles from remote..."
+	@cd $(DOTFILES_DIR) && git pull origin main || git pull origin master
+	@bash $(DOTFILES_DIR)/scripts/restow.sh
 	@echo "✨ Sync complete!"
+
+push: ## Commit and push changes (interactive)
+	@echo "📤 Pushing dotfiles to remote..."
+	@cd $(DOTFILES_DIR) && git add -A
+	@cd $(DOTFILES_DIR) && git status
+	@echo ""
+	@read -p "Commit message: " msg; \
+	cd $(DOTFILES_DIR) && git commit -m "$$msg" && git push origin main || git push origin master
+	@echo "✨ Changes pushed!"
+
+add-tool: ## Add a new tool to dotfiles (usage: make add-tool TOOL=name)
+	@bash $(DOTFILES_DIR)/scripts/add-tool.sh $(TOOL)

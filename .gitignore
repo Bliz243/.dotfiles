@@ -18,6 +18,9 @@ local/
 stow/zsh/.zsh/99-local.zsh
 */.gitconfig.local
 */.env
+.machine-type
+.last-backup
+logs/
 
 # OS-specific files
 .DS_Store

@@ -5,8 +5,8 @@
   roles:
     - common
     - zsh
-    - fonts
+    - { role: fonts, tags: ['fonts', 'gui'] }
     - starship
     - nvim
-    - alacritty
+    - { role: alacritty, tags: ['alacritty', 'gui'] }
     - tmux

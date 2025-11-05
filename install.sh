@@ -54,6 +54,27 @@ fi
 print_info "Detected OS: $OS"
 print_info "Detected Distro: $DISTRO"
 
+# Detect machine type (server vs workstation)
+print_header "🖥️  Machine Type Detection"
+
+if [ -n "$DISPLAY" ] || [ -n "$WSL_DISTRO_NAME" ] || [ "$OS" == "Darwin" ]; then
+    MACHINE_TYPE="workstation"
+    print_info "Detected: Workstation (GUI environment)"
+else
+    MACHINE_TYPE="server"
+    print_info "Detected: Server (headless)"
+fi
+
+# Allow override with simple prompt (keep it YAGNI)
+read -p "Install as (w)orkstation or (s)erver? [default: $MACHINE_TYPE]: " choice
+case $choice in
+    w|W|workstation) MACHINE_TYPE="workstation" ;;
+    s|S|server) MACHINE_TYPE="server" ;;
+esac
+
+print_success "Installing as: $MACHINE_TYPE"
+echo "$MACHINE_TYPE" > "$DOTFILES_DIR/.machine-type"
+
 # Function to install Git and Ansible on macOS
 install_mac() {
     print_header "📦 macOS Setup"
@@ -241,12 +262,26 @@ esac
 # Run Ansible Playbook
 print_header "🤖 Running Ansible Playbook"
 cd "$DOTFILES_DIR/ansible"
-if ansible-playbook setup-new-machine.yml; then
-    print_success "Ansible playbook completed successfully"
+
+# Pass machine type to Ansible (servers skip GUI tools)
+if [ "$MACHINE_TYPE" = "server" ]; then
+    print_info "Server installation: skipping GUI tools (Alacritty, fonts)"
+    if ansible-playbook setup-new-machine.yml --skip-tags "gui,fonts"; then
+        print_success "Ansible playbook completed successfully"
+    else
+        print_error "Ansible playbook failed"
+        print_info "Check the output above for errors"
+        exit 1
+    fi
 else
-    print_error "Ansible playbook failed"
-    print_info "Check the output above for errors"
-    exit 1
+    print_info "Workstation installation: installing all tools"
+    if ansible-playbook setup-new-machine.yml; then
+        print_success "Ansible playbook completed successfully"
+    else
+        print_error "Ansible playbook failed"
+        print_info "Check the output above for errors"
+        exit 1
+    fi
 fi
 
 print_header "✨ Installation Complete!"
