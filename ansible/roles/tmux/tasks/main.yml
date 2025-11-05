@@ -5,8 +5,5 @@
     state: present
   become: true
 
-- name: Copy tmux configuration file
-  template:
-    src: "{{ dotfiles_dir }}/tmux/.tmux.conf"
-    dest: "{{ ansible_env.HOME }}/.tmux.conf"
-    mode: '0644'
+# Note: .tmux.conf will be stowed via GNU Stow (see scripts/stow.sh)
+# This role only handles tmux installation

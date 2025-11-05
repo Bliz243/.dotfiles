@@ -5,13 +5,8 @@
     name: zsh
     state: present
 
-- name: Copy .zshrc from dotfiles
-  become: no
-  copy:
-    src: "{{ ansible_env.HOME }}/.dotfiles/zsh/.zshrc"
-    dest: "{{ ansible_env.HOME }}/.zshrc"
-    mode: '0644'
-    force: yes
+# Note: .zshrc will be stowed via GNU Stow (see scripts/stow.sh)
+# This role only handles system setup and plugin installation
 
 - name: Install Oh My Zsh
   become: no

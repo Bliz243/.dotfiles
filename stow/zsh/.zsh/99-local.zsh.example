@@ -1,0 +1,23 @@
+# ============================================================================
+# Local Configuration (Machine-Specific)
+# ============================================================================
+
+# This is an example file. Copy to 99-local.zsh and customize.
+# The actual 99-local.zsh is gitignored for machine-specific settings.
+
+# Example: Add custom paths
+# export PATH="$HOME/bin:$PATH"
+
+# Example: Add custom aliases
+# alias myproject="cd ~/projects/myproject"
+
+# Example: Set environment variables
+# export MY_API_KEY="your-key-here"
+
+# Example: Custom functions
+# function myfunction() {
+#   echo "Custom function"
+# }
+
+# Example: Disable tmux auto-attach for this machine
+# export TMUX_AUTO_ATTACH=false

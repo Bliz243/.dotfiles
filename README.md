@@ -1,371 +1,215 @@
 # 🚀 Dotfiles
 
-A comprehensive, cross-platform dotfiles setup using Ansible for automated provisioning of development environments.
+**Production-grade, modular, cross-platform dotfiles** using **GNU Stow** + **Ansible** for automated development environment setup.
 
-## ✨ Features
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-blue)](https://github.com/Bliz243/.dotfiles)
+[![Shell](https://img.shields.io/badge/shell-zsh-green)](https://www.zsh.org/)
+[![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
 
-### 🛠️ Core Tools
-- **Shell**: Zsh with Oh My Zsh, custom plugins, and intelligent history
-- **Terminal**: Alacritty with optimized configuration
-- **Multiplexer**: tmux with sensible defaults and vim-like keybindings
-- **Editor**: Neovim with extensive plugins and LSP support
-- **Prompt**: Starship with custom theming and distro detection
-- **Fonts**: JetBrains Mono Nerd Font (auto-downloaded during setup)
+## ✨ What Makes This Special
 
-### 🔧 Modern CLI Tools
-- **eza/exa**: Modern replacement for `ls` with icons and git integration
-- **bat**: Better `cat` with syntax highlighting
-- **fd**: Faster and more user-friendly `find`
-- **ripgrep (rg)**: Blazingly fast grep alternative
-- **fzf**: Fuzzy finder for files, history, and processes
-- **zoxide**: Smart directory jumping based on frecency
+- 🔗 **GNU Stow Integration** - Edit configs once, changes apply immediately
+- 🤖 **Ansible Automation** - Consistent setup across all machines
+- 📦 **Modular Design** - Load only what you need
+- 🔐 **Security First** - No secrets in version control
+- 🧪 **Tested & Validated** - Health checks and automated testing
+- 📚 **Well Documented** - Comprehensive guides included
+- ⚡ **Performance Optimized** - Fast shell startup (< 1s)
 
-### 🎨 Developer Experience
-- **Git**: Comprehensive aliases and configuration
-- **LSP Support**: Full language server protocol support via coc.nvim
-- **Fuzzy Finding**: Integrated fzf for files, buffers, and commands
-- **Smart Navigation**: zoxide for intelligent directory switching
-- **Auto-completion**: zsh-autosuggestions for command suggestions
-- **Syntax Highlighting**: bat for file previews and man pages
+## 🎯 Quick Start
 
-### 🔐 Security Features
-- Secrets excluded from version control
-- Machine-specific configurations via local override files
-- Safe defaults for git and shell operations
+### One Command Installation
 
-## 🚀 Quick Start
-
-### Prerequisites
-- **Git** (will be installed if missing)
-- **Ansible** (will be installed if missing)
-- **Sudo access** (for package installation)
-
-### Installation
-
-1. **Clone the repository**:
 ```bash
-git clone https://github.com/your-username/.dotfiles.git ~/.dotfiles
+curl -fsSL https://raw.githubusercontent.com/Bliz243/.dotfiles/main/scripts/bootstrap.sh | bash
+```
+
+### Or Manual Installation
+
+```bash
+git clone https://github.com/Bliz243/.dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
+make install
 ```
 
-2. **Run the installation script**:
-```bash
-./install.sh
-```
+That's it! See [docs/INSTALL.md](docs/INSTALL.md) for detailed instructions.
 
-The script will:
-- Detect your operating system (macOS, Ubuntu, Debian, Arch, Fedora, etc.)
-- Install required dependencies (git, ansible)
-- Run the Ansible playbook to configure your system
-- Download and install fonts
-- Set up all tools and configurations
+## 🛠️ What's Included
 
-3. **Restart your terminal** or source your shell config:
-```bash
-exec zsh
-# or
-source ~/.zshrc
-```
+### Core Tools
 
-## 📁 Structure
+| Tool | Description |
+|------|-------------|
+| **Zsh** | Shell with Oh My Zsh + modular config |
+| **Neovim** | Modern editor with LSP support |
+| **Tmux** | Terminal multiplexer with vim bindings |
+| **Starship** | Fast, customizable prompt |
+| **Alacritty** | GPU-accelerated terminal |
+| **Git** | Version control with 50+ aliases |
+
+### Modern CLI Tools
+
+| Tool | Replaces | Description |
+|------|----------|-------------|
+| **eza** | ls | Modern ls with git integration |
+| **bat** | cat | Cat with syntax highlighting |
+| **fd** | find | Fast, user-friendly find |
+| **ripgrep** | grep | Blazingly fast grep |
+| **fzf** | - | Fuzzy finder for everything |
+| **zoxide** | cd | Smart directory jumping |
+
+### Developer Experience
+
+- 🎨 **Full LSP Support** - TypeScript, Python, Go, Docker, etc.
+- 🔍 **Fuzzy Everything** - Files, buffers, history, processes
+- 🧠 **Smart Navigation** - Jump to frequently used directories
+- ✨ **Syntax Highlighting** - Everywhere (files, man pages, git)
+- 🚀 **Auto-completion** - Intelligent command suggestions
+- 📝 **20+ Neovim Plugins** - Carefully curated for productivity
+
+## 📁 Repository Structure
 
 ```
 .dotfiles/
-├── ansible/                    # Ansible automation
-│   ├── setup-new-machine.yml  # Main playbook
-│   ├── ansible.cfg            # Ansible configuration
-│   └── roles/                 # Modular role-based setup
-│       ├── common/            # Common packages and tools
-│       ├── zsh/               # Zsh shell configuration
-│       ├── fonts/             # Font installation
-│       ├── starship/          # Starship prompt
-│       ├── nvim/              # Neovim editor
-│       ├── tmux/              # tmux multiplexer
-│       └── alacritty/         # Alacritty terminal
-├── zsh/                       # Zsh configuration files
-│   └── .zshrc                 # Main zsh config
-├── nvim/                      # Neovim configuration
-│   └── init.vim               # Neovim config (380+ lines)
-├── tmux/                      # tmux configuration
-│   └── .tmux.conf             # tmux config
-├── starship/                  # Starship prompt config
-│   └── starship.toml          # Prompt configuration
-├── alacritty/                 # Alacritty terminal config
-│   └── alacritty.toml         # Terminal config
-├── git/                       # Git configuration
-│   ├── .gitconfig             # Git settings and aliases
-│   └── .gitignore_global      # Global gitignore patterns
-├── vscode/                    # VS Code settings
-│   ├── settings.json          # Editor settings
-│   └── keybinds.json          # Keybindings
-├── install.sh                 # Main installation script
+├── stow/                      # Stowable packages (GNU Stow)
+│   ├── zsh/
+│   │   ├── .zshrc            # Main loader
+│   │   └── .zsh/             # Modular configuration
+│   │       ├── 00-env.zsh    # Environment variables
+│   │       ├── 01-options.zsh # Shell options
+│   │       ├── 02-aliases.zsh # Aliases
+│   │       ├── 03-functions.zsh # Functions
+│   │       ├── 04-plugins.zsh # Oh My Zsh
+│   │       ├── 05-tools.zsh  # Modern CLI tools
+│   │       ├── 06-prompt.zsh # Starship
+│   │       ├── 07-tmux.zsh   # Auto-attach
+│   │       └── 99-local.zsh.example # Local overrides
+│   ├── nvim/                 # Neovim (382 lines!)
+│   ├── git/                  # Git config + aliases
+│   ├── tmux/                 # Tmux config
+│   ├── starship/             # Starship prompt
+│   └── alacritty/            # Alacritty terminal
+├── ansible/                   # System provisioning
+│   ├── setup-new-machine.yml # Main playbook
+│   └── roles/                # Modular roles
+├── scripts/                   # Management scripts
+│   ├── bootstrap.sh          # One-command install
+│   ├── stow.sh               # Stow packages
+│   ├── unstow.sh             # Remove symlinks
+│   ├── restow.sh             # Refresh symlinks
+│   ├── health-check.sh       # Validate setup
+│   ├── test.sh               # Run tests
+│   └── update.sh             # Update everything
+├── docs/                      # Documentation
+│   ├── INSTALL.md
+│   ├── TROUBLESHOOTING.md
+│   └── ...
+├── config/                    # Templates
+│   ├── .gitconfig.local.example
+│   └── .env.example
+├── Makefile                   # Unified interface
 └── README.md                  # This file
 ```
 
-## ⚙️ Configuration Details
+## 🎓 Usage
 
-### Shell (Zsh)
-
-The zsh configuration includes:
-- **Oh My Zsh** with useful plugins
-- **Conditional tmux auto-attach** (won't interfere with VSCode or SSH)
-- **Modern CLI tools integration** with fallbacks to standard commands
-- **Intelligent history** (100k lines, deduplication, shared across sessions)
-- **fzf integration** for fuzzy finding files, directories, and processes
-- **zoxide integration** for smart directory navigation
-- **Comprehensive aliases** for git, docker, kubernetes, and more
-
-**Disable tmux auto-attach**:
-```bash
-export TMUX_AUTO_ATTACH=false
-```
-
-**Key aliases**:
-```bash
-# Navigation
-z <dir>          # Jump to directory (zoxide)
-fcd              # Fuzzy cd
-fvim             # Fuzzy find and open file
-
-# Modern replacements
-ls/ll/la         # eza with icons (fallback to exa/ls)
-cat              # bat with syntax highlighting
-grep             # ripgrep (rg)
-find             # fd
-
-# Git shortcuts
-gs               # git status
-ga               # git add
-gc               # git commit -m
-gp               # git push
-gl               # git log --oneline --graph
-```
-
-### Editor (Neovim)
-
-Comprehensive Neovim setup with:
-- **20+ plugins** including coc.nvim for LSP support
-- **Gruvbox color scheme** (hard contrast)
-- **Airline statusline** with git integration
-- **NERDTree** file explorer
-- **fzf.vim** for fuzzy finding
-- **vim-fugitive** for git operations
-- **Language support** via coc extensions (TypeScript, Python, Go, Docker, etc.)
-- **Auto-pairs**, indent guides, and whitespace management
-- **Extensive keybindings** with space as leader key
-
-**Key mappings**:
-```vim
-<Space>         " Leader key
-<C-n>           " Toggle NERDTree
-<C-p>           " Fuzzy find files
-<Space>f        " Ripgrep search
-gd              " Go to definition
-gr              " Find references
-K               " Show documentation
-<Space>rn       " Rename symbol
-```
-
-### Terminal (Alacritty)
-
-- **Tokyo Night color scheme**
-- **JetBrains Mono Nerd Font**
-- **95% opacity** for modern aesthetics
-- **10,000 line scrollback**
-- **Optimized for performance**
-
-### Multiplexer (tmux)
-
-- **Prefix: Ctrl+a** (instead of Ctrl+b)
-- **50,000 line history**
-- **Vim-style pane navigation** (h/j/k/l)
-- **Mouse support enabled**
-- **Vi mode** for copy operations
-- **Intuitive split keybindings** (| and -)
-
-### Git
-
-Includes **50+ git aliases** for common operations:
-```bash
-git st           # Status (short)
-git cm           # Commit with message
-git co           # Checkout
-git l            # Pretty log graph
-git unstage      # Unstage files
-git cleanup      # Delete merged branches
-```
-
-Full configuration includes:
-- Better diff algorithms
-- Automatic pruning of remote branches
-- Rebase by default on pull
-- Colorized output
-
-## 🔧 Customization
-
-### Local Configuration Files
-
-Create these files for machine-specific settings (they're gitignored):
-
-- `~/.zshrc.local` - Local zsh configuration
-- `~/.gitconfig.local` - Local git settings (name, email)
-
-Example `~/.gitconfig.local`:
-```ini
-[user]
-    name = Your Name
-    email = your.email@example.com
-
-[github]
-    user = your-github-username
-```
-
-### Modifying Configurations
-
-All configuration files are in their respective directories. After modifying:
-
-1. **For zsh**: `source ~/.zshrc` or restart terminal
-2. **For neovim**: `:source $MYVIMRC` or restart nvim
-3. **For tmux**: `tmux source ~/.tmux.conf` (or `<prefix>:source-file ~/.tmux.conf`)
-
-To re-run the full setup:
-```bash
-cd ~/.dotfiles
-ansible-playbook ansible/setup-new-machine.yml
-```
-
-## 🆘 Troubleshooting
-
-### Fonts not displaying correctly
-
-1. Ensure JetBrains Mono Nerd Font is installed:
-```bash
-fc-list | grep JetBrains
-```
-
-2. Manually download from [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts/releases/latest)
-
-### Oh My Zsh or plugins missing
+### Daily Commands
 
 ```bash
-# Reinstall Oh My Zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
-# Install zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+make help       # Show all available commands
+make install    # Full installation
+make update     # Update everything
+make health     # Run health check
+make stow       # Symlink dotfiles
+make test       # Run validation
 ```
 
-### Neovim plugins not working
+### Stow Management
 
 ```bash
-# Reinstall vim-plug
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+# Stow all packages
+./scripts/stow.sh
 
-# Then in nvim:
-:PlugInstall
+# Stow specific packages
+./scripts/stow.sh zsh git nvim
+
+# Remove symlinks
+./scripts/unstow.sh
+
+# Refresh symlinks (after changes)
+./scripts/restow.sh
 ```
 
-### Modern CLI tools not installed
+### Customization
 
-If tools like `eza`, `bat`, `fd`, etc. aren't available:
-
-**Option 1: Install via package manager**
-```bash
-# Ubuntu/Debian
-sudo apt install eza bat fd-find ripgrep fzf zoxide
-
-# macOS
-brew install eza bat fd ripgrep fzf zoxide
-
-# Arch
-sudo pacman -S eza bat fd ripgrep fzf zoxide
-```
-
-**Option 2: Install via cargo (if Rust is installed)**
-```bash
-cargo install eza bat fd-find ripgrep zoxide
-```
-
-The zshrc will automatically fallback to standard commands if modern tools aren't available.
-
-### Permission denied errors
-
-Make sure install script is executable:
-```bash
-chmod +x ~/.dotfiles/install.sh
-```
-
-## 🔄 Updating
-
-To update dotfiles and tools:
+Edit configs directly - changes apply immediately:
 
 ```bash
-cd ~/.dotfiles
-git pull
-./install.sh  # Re-run setup
+# Edit zsh configuration
+vim ~/.dotfiles/stow/zsh/.zsh/02-aliases.zsh
+
+# Edit neovim configuration
+vim ~/.dotfiles/stow/nvim/.config/nvim/init.vim
+
+# Changes are LIVE! No need to reinstall!
 ```
 
-To update just Neovim plugins:
+### Machine-Specific Settings
+
 ```bash
-nvim +PlugUpdate +qall
+# Create local zsh config (gitignored)
+cp ~/.zsh/99-local.zsh.example ~/.zsh/99-local.zsh
+vim ~/.zsh/99-local.zsh
+
+# Create local git config (gitignored)
+cp config/.gitconfig.local.example ~/.gitconfig.local
+vim ~/.gitconfig.local
 ```
 
-To update Oh My Zsh:
+## 🔑 Key Features Deep Dive
+
+### Modular Zsh Configuration
+
+Instead of one huge `.zshrc`, configs are split into focused modules. Benefits:
+- Easy to find and edit specific configs
+- Can disable modules by renaming
+- Clean, maintainable organization
+
+### GNU Stow Magic
+
+**Problem with copying**: Edit `.dotfiles/zsh/.zshrc` → nothing happens until you re-run install
+
+**Solution with Stow**: Configs are symlinked, so edits apply instantly!
+
 ```bash
-omz update
+~/.zshrc -> ~/.dotfiles/stow/zsh/.zshrc
 ```
 
-## 🌟 Highlights
+## 🚀 Advanced Usage
 
-### Performance Optimizations
-- Lazy loading for shell initialization
-- Optimized font caching
-- Efficient plugin loading
-- Fast startup times (< 1s for zsh)
+### Sync Across Machines
 
-### Developer-Friendly
-- Extensive documentation in config files
-- Sensible defaults that just work
-- Easy to customize and extend
-- Works across multiple platforms
+```bash
+make sync    # Pull latest and restow
+```
 
-### Modern & Maintained
-- Uses latest versions of tools
-- Regular updates via Ansible
-- Community-driven plugin selection
-- Security-first approach
+### Update Everything
 
-## 📝 Supported Platforms
+```bash
+make update
+```
 
-- ✅ **macOS** (via Homebrew)
-- ✅ **Ubuntu/Debian** (via apt)
-- ✅ **Arch Linux** (via pacman)
-- ✅ **Fedora/RHEL** (via dnf)
-- ✅ **Other Linux distros** (with package manager adaptation)
+Updates: Dotfiles, Oh My Zsh, Neovim plugins, Starship, Rust tools, System packages
 
-## 🤝 Contributing
+## 📝 Documentation
 
-Feel free to fork and customize for your own use! If you find bugs or have suggestions:
-
-1. Open an issue
-2. Submit a pull request
-3. Share your improvements
+- [Installation Guide](docs/INSTALL.md) - Detailed setup instructions
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues & fixes
 
 ## 📄 License
 
-MIT License - feel free to use and modify as needed.
-
-## 🙏 Acknowledgments
-
-Built with inspiration from the dotfiles community and these excellent projects:
-- [Oh My Zsh](https://ohmyz.sh/)
-- [Neovim](https://neovim.io/)
-- [Starship](https://starship.rs/)
-- [Alacritty](https://alacritty.org/)
-- [fzf](https://github.com/junegunn/fzf)
-- And many more amazing open-source tools!
+MIT License - Use freely!
 
 ---
 
-**Made with ❤️ for the command line**
+**⭐ If this helped you, consider starring the repo!**

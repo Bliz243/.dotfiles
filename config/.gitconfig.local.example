@@ -1,0 +1,13 @@
+# Local Git Configuration
+# Copy this file to ~/.gitconfig.local and customize
+
+[user]
+    name = Your Name
+    email = your.email@example.com
+
+[github]
+    user = your-github-username
+
+# Machine-specific settings can go here
+# [core]
+#     sshCommand = ssh -i ~/.ssh/custom_key

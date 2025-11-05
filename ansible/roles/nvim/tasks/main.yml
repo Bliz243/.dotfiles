@@ -22,11 +22,8 @@
     mode: '0755'
   become: no
 
-- name: Copy Neovim init.vim
-  copy:
-    src: "{{ dotfiles_dir }}/nvim/init.vim"
-    dest: "{{ nvim_config_dir }}/init.vim"
-    mode: '0644'
+# Note: init.vim will be stowed via GNU Stow (see scripts/stow.sh)
+# This role only handles vim-plug and plugin installation
 
 - name: Ensure Neovim autoload directory exists
   file:
