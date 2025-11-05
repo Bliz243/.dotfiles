@@ -54,25 +54,15 @@ fi
 print_info "Detected OS: $OS"
 print_info "Detected Distro: $DISTRO"
 
-# Detect machine type (server vs workstation)
-print_header "🖥️  Machine Type Detection"
-
+# Detect machine type (server vs workstation) - auto-detect, no prompt
 if [ -n "$DISPLAY" ] || [ -n "$WSL_DISTRO_NAME" ] || [ "$OS" == "Darwin" ]; then
     MACHINE_TYPE="workstation"
-    print_info "Detected: Workstation (GUI environment)"
+    print_info "Machine type: Workstation (installing all tools including GUI)"
 else
     MACHINE_TYPE="server"
-    print_info "Detected: Server (headless)"
+    print_info "Machine type: Server (skipping GUI tools)"
 fi
 
-# Allow override with simple prompt (keep it YAGNI)
-read -p "Install as (w)orkstation or (s)erver? [default: $MACHINE_TYPE]: " choice
-case $choice in
-    w|W|workstation) MACHINE_TYPE="workstation" ;;
-    s|S|server) MACHINE_TYPE="server" ;;
-esac
-
-print_success "Installing as: $MACHINE_TYPE"
 echo "$MACHINE_TYPE" > "$DOTFILES_DIR/.machine-type"
 
 # Function to install Git and Ansible on macOS

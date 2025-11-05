@@ -1,4 +1,4 @@
-.PHONY: help install update stow unstow restow health test clean backup sync push add-tool
+.PHONY: help install update stow unstow restow clean backup sync push
 
 # Default target
 .DEFAULT_GOAL := help
@@ -36,12 +36,6 @@ unstow: ## Remove all dotfiles symlinks
 restow: ## Re-stow all packages (refresh symlinks)
 	@bash $(DOTFILES_DIR)/scripts/restow.sh
 
-health: ## Run health check
-	@bash $(DOTFILES_DIR)/scripts/health-check.sh
-
-test: ## Run all tests and validation
-	@bash $(DOTFILES_DIR)/scripts/test.sh
-
 clean: ## Clean up temporary files and caches
 	@echo "🧹 Cleaning up..."
 	@find $(DOTFILES_DIR) -name "*.swp" -delete
@@ -69,6 +63,3 @@ push: ## Commit and push changes (interactive)
 	@read -p "Commit message: " msg; \
 	cd $(DOTFILES_DIR) && git commit -m "$$msg" && git push origin main || git push origin master
 	@echo "✨ Changes pushed!"
-
-add-tool: ## Add a new tool to dotfiles (usage: make add-tool TOOL=name)
-	@bash $(DOTFILES_DIR)/scripts/add-tool.sh $(TOOL)
