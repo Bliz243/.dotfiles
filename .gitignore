@@ -1,0 +1,77 @@
+# Dotfiles .gitignore
+
+# Secret and sensitive files
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+secrets.yml
+vault-password.txt
+
+# Local machine-specific configs (not for version control)
+local/
+*.local
+*_local.*
+stow/zsh/.zsh/99-local.zsh
+*/.gitconfig.local
+*/.env
+.machine-type
+.last-backup
+logs/
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editor/IDE files
+.vscode/settings.json.user
+.idea/
+*.swp
+*.swo
+*~
+.vim/
+.netrwhist
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+
+# Ansible specific
+*.retry
+ansible/inventories/hosts
+ansible/.vault_pass
+
+# Compilation/build artifacts
+*.pyc
+__pycache__/
+node_modules/
+target/
+dist/
+build/
+
+# Downloaded/generated content (will be fetched during setup)
+fonts/downloads/
+tmp/
+cache/
+
+# SSH and credentials (should never be in dotfiles)
+*.pem
+id_rsa
+id_ed25519
+known_hosts
+
+# System-specific
+.ansible/
+.cache/

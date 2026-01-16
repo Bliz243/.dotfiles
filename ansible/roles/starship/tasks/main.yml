@@ -34,8 +34,5 @@
     mode: '0755'
     force: true
 
-- name: Copy Starship configuration
-  copy:
-    src: "{{ dotfiles_dir }}/starship/starship.toml"
-    dest: "{{ ansible_env.HOME }}/.config/starship.toml"
-    mode: '0644'
+# Note: starship.toml will be stowed via GNU Stow (see scripts/stow.sh)
+# This role only handles Starship installation
