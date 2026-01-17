@@ -1,9 +1,0 @@
----
-- name: Ensure tmux is installed
-  package:
-    name: tmux
-    state: present
-  become: true
-
-# Note: .tmux.conf will be stowed via GNU Stow (see scripts/stow.sh)
-# This role only handles tmux installation
