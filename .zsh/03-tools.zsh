@@ -1,4 +1,31 @@
 # ============================================================================
+# Oh My Zsh Configuration
+# ============================================================================
+
+# Path to oh-my-zsh installation
+export ZSH="$HOME/.oh-my-zsh"
+
+# Theme
+ZSH_THEME="gozilla"
+
+# Plugins
+# Note: zsh-autosuggestions needs to be installed: see ansible/roles/zsh/tasks/main.yml
+plugins=(
+  git
+  github
+  brew
+  zsh-autosuggestions
+  kubectl
+  docker
+  sudo
+  colored-man-pages
+  command-not-found
+  extract
+)
+
+# Load Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+# ============================================================================
 # Modern CLI Tools Setup (with fallbacks)
 # ============================================================================
 
@@ -98,4 +125,24 @@ if command -v fzf &> /dev/null; then
     pid=$(ps aux | sed 1d | fzf -m | awk '{print $2}')
     [ -n "$pid" ] && echo "$pid" | xargs kill -${1:-9}
   }
+fi
+# ============================================================================
+# Auto-attach to tmux (conditional)
+# ============================================================================
+
+# Only auto-attach tmux if:
+# - Not already in tmux
+# - Not in VSCode integrated terminal
+# - Not in SSH with X11 forwarding
+# - Terminal is interactive
+# - TMUX_AUTO_ATTACH is not set to "false"
+if [[ -z "$TMUX" ]] && \
+   [[ -z "$VSCODE_INJECTION" ]] && \
+   [[ -z "$TERM_PROGRAM" ]] && \
+   [[ "$TMUX_AUTO_ATTACH" != "false" ]] && \
+   [[ $- == *i* ]] && \
+   command -v tmux &> /dev/null; then
+
+  # Try to attach to 'default' session, create if it doesn't exist
+  tmux attach -t default 2>/dev/null || tmux new -s default
 fi
