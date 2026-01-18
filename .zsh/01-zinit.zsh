@@ -1,6 +1,20 @@
 # Zinit bootstrap and plugin configuration
 
 # ─────────────────────────────────────────────
+# Tmux Auto-attach (SSH sessions only)
+# ─────────────────────────────────────────────
+# Only auto-attach when:
+# - Interactive SSH session with TTY (won't break scp/rsync/ansible)
+# - Not already in tmux
+# - TMUX_AUTO_ATTACH is not "false" (escape hatch for 99-local.zsh)
+if [[ -n "$SSH_TTY" ]] && \
+   [[ $- == *i* ]] && \
+   [[ -z "$TMUX" ]] && \
+   [[ "$TMUX_AUTO_ATTACH" != "false" ]]; then
+  tmux attach -t default 2>/dev/null || tmux new -s default
+fi
+
+# ─────────────────────────────────────────────
 # Zinit Installation
 # ─────────────────────────────────────────────
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
