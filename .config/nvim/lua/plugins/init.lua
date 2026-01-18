@@ -1,82 +1,61 @@
 return {
+  -- ─────────────────────────────────────────────
   -- Colorscheme
+  -- ─────────────────────────────────────────────
   {
-    "folke/tokyonight.nvim",
+    "catppuccin/nvim",
+    name = "catppuccin",
     lazy = false,
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme("tokyonight-night")
+      require("catppuccin").setup({ flavour = "mocha" })
+      vim.cmd.colorscheme("catppuccin")
     end,
   },
 
-  -- Telescope (fuzzy finder)
-  {
-    "nvim-telescope/telescope.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    keys = {
-      { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
-      { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
-      { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Buffers" },
-      { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help" },
-      { "<C-p>", "<cmd>Telescope find_files<cr>", desc = "Find files" },
-    },
-  },
-
-  -- Treesitter (syntax)
+  -- ─────────────────────────────────────────────
+  -- Treesitter (syntax highlighting)
+  -- ─────────────────────────────────────────────
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
+    event = { "BufReadPost", "BufNewFile" },
     config = function()
       require("nvim-treesitter.configs").setup({
-        ensure_installed = { "lua", "vim", "vimdoc", "javascript", "typescript", "python", "go", "rust", "json", "yaml", "html", "css", "bash", "markdown" },
+        ensure_installed = {
+          "lua", "vim", "vimdoc", "bash",
+          "typescript", "javascript", "tsx", "html", "css",
+          "python", "go", "yaml", "json", "dockerfile", "terraform",
+          "markdown", "markdown_inline",
+        },
         highlight = { enable = true },
         indent = { enable = true },
       })
     end,
   },
 
+  -- ─────────────────────────────────────────────
   -- LSP
+  -- ─────────────────────────────────────────────
   {
     "neovim/nvim-lspconfig",
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
+      "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
-      require("mason").setup()
-      require("mason-lspconfig").setup({
-        ensure_installed = { "lua_ls", "ts_ls", "pyright" },
-      })
-
-      local lspconfig = require("lspconfig")
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-
-      -- LSP keymaps
-      vim.api.nvim_create_autocmd("LspAttach", {
-        callback = function(ev)
-          local map = function(keys, func, desc)
-            vim.keymap.set("n", keys, func, { buffer = ev.buf, desc = desc })
-          end
-          map("gd", vim.lsp.buf.definition, "Go to definition")
-          map("gr", vim.lsp.buf.references, "References")
-          map("K", vim.lsp.buf.hover, "Hover")
-          map("<leader>rn", vim.lsp.buf.rename, "Rename")
-          map("<leader>ca", vim.lsp.buf.code_action, "Code action")
-          map("[d", vim.diagnostic.goto_prev, "Prev diagnostic")
-          map("]d", vim.diagnostic.goto_next, "Next diagnostic")
-        end,
-      })
-
-      -- Setup servers
-      lspconfig.lua_ls.setup({ capabilities = capabilities })
-      lspconfig.ts_ls.setup({ capabilities = capabilities })
-      lspconfig.pyright.setup({ capabilities = capabilities })
+      require("plugins.lsp")
     end,
   },
 
+  -- ─────────────────────────────────────────────
   -- Completion
+  -- ─────────────────────────────────────────────
   {
     "hrsh7th/nvim-cmp",
+    event = "InsertEnter",
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
@@ -108,6 +87,15 @@ return {
               fallback()
             end
           end, { "i", "s" }),
+          ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+              luasnip.jump(-1)
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
         }),
         sources = {
           { name = "nvim_lsp" },
@@ -119,69 +107,135 @@ return {
     end,
   },
 
+  -- ─────────────────────────────────────────────
+  -- Telescope (fuzzy finder)
+  -- ─────────────────────────────────────────────
+  {
+    "nvim-telescope/telescope.nvim",
+    cmd = "Telescope",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    keys = {
+      { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+      { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
+      { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Buffers" },
+      { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help" },
+      { "<C-p>", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+    },
+  },
+
+  -- ─────────────────────────────────────────────
   -- File explorer
+  -- ─────────────────────────────────────────────
   {
     "stevearc/oil.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
+    keys = {
+      { "-", "<cmd>Oil<cr>", desc = "Open file explorer" },
+    },
     config = function()
-      require("oil").setup()
-      vim.keymap.set("n", "-", "<cmd>Oil<cr>", { desc = "Open file explorer" })
-    end,
-  },
-
-  -- Status line
-  {
-    "nvim-lualine/lualine.nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = function()
-      require("lualine").setup({
-        options = { theme = "tokyonight" },
+      require("oil").setup({
+        view_options = {
+          show_hidden = true,
+        },
       })
     end,
   },
 
-  -- Which-key (keybinding help)
+  -- ─────────────────────────────────────────────
+  -- Git signs
+  -- ─────────────────────────────────────────────
+  {
+    "lewis6991/gitsigns.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {},
+  },
+
+  -- ─────────────────────────────────────────────
+  -- Which-key (keybind help)
+  -- ─────────────────────────────────────────────
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
-    config = function()
-      require("which-key").setup()
-    end,
+    opts = {},
   },
 
-  -- Git signs
-  {
-    "lewis6991/gitsigns.nvim",
-    config = function()
-      require("gitsigns").setup()
-    end,
-  },
-
-  -- Comment
-  {
-    "numToStr/Comment.nvim",
-    config = function()
-      require("Comment").setup()
-    end,
-  },
-
+  -- ─────────────────────────────────────────────
   -- Autopairs
+  -- ─────────────────────────────────────────────
   {
     "windwp/nvim-autopairs",
     event = "InsertEnter",
-    config = function()
-      require("nvim-autopairs").setup()
-    end,
+    opts = {},
   },
 
+  -- ─────────────────────────────────────────────
+  -- Commenting
+  -- ─────────────────────────────────────────────
+  {
+    "numToStr/Comment.nvim",
+    keys = {
+      { "gcc", mode = "n", desc = "Comment line" },
+      { "gc", mode = "v", desc = "Comment selection" },
+    },
+    opts = {},
+  },
+
+  -- ─────────────────────────────────────────────
+  -- Status line
+  -- ─────────────────────────────────────────────
+  {
+    "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    opts = {
+      options = { theme = "catppuccin" },
+    },
+  },
+
+  -- ─────────────────────────────────────────────
   -- Tmux navigation
+  -- ─────────────────────────────────────────────
   { "christoomey/vim-tmux-navigator" },
 
+  -- ─────────────────────────────────────────────
+  -- Formatting
+  -- ─────────────────────────────────────────────
+  {
+    "stevearc/conform.nvim",
+    event = "BufWritePre",
+    cmd = { "ConformInfo" },
+    keys = {
+      { "<leader>cf", function() require("conform").format({ async = true }) end, desc = "Format buffer" },
+    },
+    opts = {
+      formatters_by_ft = {
+        javascript = { "prettier" },
+        typescript = { "prettier" },
+        typescriptreact = { "prettier" },
+        javascriptreact = { "prettier" },
+        css = { "prettier" },
+        html = { "prettier" },
+        json = { "prettier" },
+        yaml = { "prettier" },
+        markdown = { "prettier" },
+        python = { "black" },
+        go = { "gofmt" },
+        terraform = { "terraform_fmt" },
+        lua = { "stylua" },
+      },
+      format_on_save = {
+        timeout_ms = 500,
+        lsp_fallback = true,
+      },
+    },
+  },
+
+  -- ─────────────────────────────────────────────
   -- Trim whitespace
+  -- ─────────────────────────────────────────────
   {
     "cappyzawa/trim.nvim",
-    config = function()
-      require("trim").setup()
-    end,
+    event = "BufWritePre",
+    opts = {},
   },
 }

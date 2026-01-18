@@ -1,0 +1,16 @@
+# Files and directories to ignore when stowing
+
+# Installation and documentation
+install.sh
+README.md
+LICENSE
+
+# Test environment
+test
+
+# Documentation
+docs
+
+# Git files (stow handles these specially anyway)
+\.git
+\.gitignore

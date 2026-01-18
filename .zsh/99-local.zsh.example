@@ -1,23 +1,26 @@
-# ============================================================================
-# Local Configuration (Machine-Specific)
-# ============================================================================
+# Machine-specific configuration
+# Copy this file to 99-local.zsh and customize
+# This file is gitignored
 
-# This is an example file. Copy to 99-local.zsh and customize.
-# The actual 99-local.zsh is gitignored for machine-specific settings.
-
-# Example: Add custom paths
-# export PATH="$HOME/bin:$PATH"
-
-# Example: Add custom aliases
-# alias myproject="cd ~/projects/myproject"
+# Example: Add machine-specific PATH entries
+# export PATH="$HOME/custom/bin:$PATH"
 
 # Example: Set environment variables
-# export MY_API_KEY="your-key-here"
+# export EDITOR="nvim"
+# export VISUAL="nvim"
 
-# Example: Custom functions
-# function myfunction() {
-#   echo "Custom function"
-# }
+# Example: Machine-specific aliases
+# alias work='cd ~/work/projects'
 
-# Example: Disable tmux auto-attach for this machine
-# export TMUX_AUTO_ATTACH=false
+# Example: Load secrets (API keys, tokens)
+# [[ -f ~/.secrets ]] && source ~/.secrets
+
+# Example: WSL-specific configuration
+# if [[ -n "$WSL_DISTRO_NAME" ]]; then
+#   export BROWSER="wslview"
+# fi
+
+# Example: macOS-specific configuration
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#   export HOMEBREW_NO_AUTO_UPDATE=1
+# fi
