@@ -178,11 +178,13 @@ post_install() {
     chsh -s "$(which zsh)" || warn "Could not change shell. Run: chsh -s \$(which zsh)"
   fi
 
-  # Install tmux plugin manager
+  # Install tmux plugin manager and plugins
   if [[ ! -d ~/.tmux/plugins/tpm ]]; then
     info "Installing tmux plugin manager..."
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
   fi
+  info "Installing tmux plugins..."
+  ~/.tmux/plugins/tpm/bin/install_plugins || warn "Tmux plugin install had issues - press C-a + I in tmux"
 
   # Create local config templates
   if [[ ! -f ~/.zsh/99-local.zsh ]]; then
@@ -191,7 +193,7 @@ post_install() {
 
   # Sync Neovim plugins
   info "Syncing Neovim plugins (this may take a moment)..."
-  nvim --headless "+Lazy! sync" +qa 2>/dev/null || warn "Neovim plugin sync had issues - run :Lazy sync manually"
+  nvim --headless "+Lazy sync" "+sleep 10" +qa 2>/dev/null || warn "Neovim plugin sync had issues - run :Lazy sync manually"
 }
 
 # ─────────────────────────────────────────────
