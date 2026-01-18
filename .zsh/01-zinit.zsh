@@ -1,15 +1,17 @@
 # Zinit bootstrap and plugin configuration
 
 # ─────────────────────────────────────────────
-# Tmux Auto-attach (SSH sessions only)
+# Tmux Auto-attach
 # ─────────────────────────────────────────────
-# Only auto-attach when:
-# - Interactive SSH session with TTY (won't break scp/rsync/ansible)
+# Auto-attach for all interactive terminals:
 # - Not already in tmux
-# - TMUX_AUTO_ATTACH is not "false" (escape hatch for 99-local.zsh)
-if [[ -n "$SSH_TTY" ]] && \
-   [[ $- == *i* ]] && \
+# - Not in VS Code, JetBrains, or other IDEs
+# - Set TMUX_AUTO_ATTACH=false in 99-local.zsh to disable
+if [[ $- == *i* ]] && \
    [[ -z "$TMUX" ]] && \
+   [[ -z "$VSCODE_RESOLVING_ENVIRONMENT" ]] && \
+   [[ "$TERM_PROGRAM" != "vscode" ]] && \
+   [[ -z "$INTELLIJ_ENVIRONMENT_READER" ]] && \
    [[ "$TMUX_AUTO_ATTACH" != "false" ]]; then
   tmux attach -t default 2>/dev/null || tmux new -s default
 fi
