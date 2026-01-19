@@ -29,10 +29,11 @@ fi
 source "${ZINIT_HOME}/zinit.zsh"
 
 # ─────────────────────────────────────────────
-# Prompt - Pure (minimal)
+# Prompt - Minimal (just ❯)
 # ─────────────────────────────────────────────
-zinit ice pick"async.zsh" src"pure.zsh"
-zinit light sindresorhus/pure
+# Context shown in tmux status bar, so prompt stays clean
+PROMPT='❯ '
+RPROMPT=''
 
 # ─────────────────────────────────────────────
 # Essential Plugins
