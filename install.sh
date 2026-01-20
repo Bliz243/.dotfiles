@@ -66,7 +66,8 @@ install_linux() {
   sudo apt install -y \
     zsh git curl stow tmux \
     fzf ripgrep fd-find \
-    build-essential
+    build-essential \
+    chromium-browser
 
   # bat (called batcat on Ubuntu, create symlink)
   if ! command -v bat &>/dev/null; then
