@@ -29,10 +29,27 @@ fi
 source "${ZINIT_HOME}/zinit.zsh"
 
 # ─────────────────────────────────────────────
-# Prompt - Minimal (just ❯)
+# Prompt - Context-aware
 # ─────────────────────────────────────────────
-# Context shown in tmux status bar, so prompt stays clean
-PROMPT='❯ '
+# In tmux: minimal (context in status bar)
+# Outside tmux: show path and git branch
+
+# Git branch function
+_git_branch() {
+  local branch
+  branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
+  [[ -n "$branch" ]] && echo " %F{magenta}${branch}%f"
+}
+
+# Smart prompt based on environment
+if [[ -n "$TMUX" ]]; then
+  # In tmux: minimal
+  PROMPT='❯ '
+else
+  # Outside tmux: show context
+  setopt PROMPT_SUBST
+  PROMPT='%F{blue}%~%f$(_git_branch) ❯ '
+fi
 RPROMPT=''
 
 # ─────────────────────────────────────────────
