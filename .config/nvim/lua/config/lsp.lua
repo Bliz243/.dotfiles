@@ -3,6 +3,10 @@
 -- Setup Mason (LSP installer)
 require("mason").setup()
 
+-- LSP capabilities (for completion)
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+-- Setup mason-lspconfig with handlers
 require("mason-lspconfig").setup({
   ensure_installed = {
     "lua_ls",       -- Lua
@@ -17,44 +21,28 @@ require("mason-lspconfig").setup({
     "terraformls",  -- Terraform
     "gopls",        -- Go
   },
+  handlers = {
+    -- Default handler for all servers
+    function(server_name)
+      require("lspconfig")[server_name].setup({
+        capabilities = capabilities,
+      })
+    end,
+    -- Custom handler for lua_ls
+    ["lua_ls"] = function()
+      require("lspconfig").lua_ls.setup({
+        capabilities = capabilities,
+        settings = {
+          Lua = {
+            diagnostics = { globals = { "vim" } },
+            workspace = { checkThirdParty = false },
+            telemetry = { enable = false },
+          },
+        },
+      })
+    end,
+  },
 })
-
--- LSP capabilities (for completion)
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
--- LSP servers to setup
-local lspconfig = require("lspconfig")
-local servers = {
-  "lua_ls",
-  "ts_ls",
-  "tailwindcss",
-  "html",
-  "cssls",
-  "pyright",
-  "bashls",
-  "yamlls",
-  "dockerls",
-  "terraformls",
-  "gopls",
-}
-
--- Setup each server
-for _, server in ipairs(servers) do
-  local opts = { capabilities = capabilities }
-
-  -- Server-specific settings
-  if server == "lua_ls" then
-    opts.settings = {
-      Lua = {
-        diagnostics = { globals = { "vim" } },
-        workspace = { checkThirdParty = false },
-        telemetry = { enable = false },
-      },
-    }
-  end
-
-  lspconfig[server].setup(opts)
-end
 
 -- LSP keymaps (on attach)
 vim.api.nvim_create_autocmd("LspAttach", {
