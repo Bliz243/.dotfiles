@@ -24,6 +24,8 @@ The install script handles:
 - Setting zsh as default shell
 - Installing tmux plugin manager (TPM)
 - Syncing Neovim plugins
+- Optional: Claude Code installation
+- Optional: GitHub/SSH authentication setup
 
 ## Post-Install Setup
 
@@ -59,6 +61,45 @@ export TMUX_PREFIX="C-b"
 TMUX_AUTO_ATTACH="ssh-only"
 ```
 
+## GitHub & SSH Setup
+
+The install script offers to configure GitHub authentication with SSH keys:
+
+1. **Git identity** - Sets your name/email in `~/.gitconfig.local`
+2. **SSH key** - Generates ed25519 key if none exists
+3. **SSH config** - Adds GitHub-specific settings
+4. **GitHub auth** - Authenticates via `gh` CLI and uploads your SSH key
+5. **Remote switch** - Converts dotfiles remote from HTTPS to SSH
+
+### On a VPS/Remote Server
+
+When running on a remote machine (detected via SSH connection), the script shows a device code:
+
+```
+Remote machine detected
+
+  1. A one-time code will be shown
+  2. On any device, visit: https://github.com/login/device
+  3. Enter the code to authenticate
+```
+
+### Run Setup Later
+
+If you skip during install, run the standalone script anytime:
+
+```bash
+~/.dotfiles/setup-github.sh
+```
+
+## Claude Code
+
+[Claude Code](https://claude.ai/code) is Anthropic's AI coding assistant CLI. The install script offers to install it.
+
+Install manually:
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
 ## What's Included
 
 | Tool | Description |
@@ -89,6 +130,7 @@ This way:
 .dotfiles/
 ├── install.sh              # Installation script
 ├── uninstall.sh            # Uninstall script
+├── setup-github.sh         # Standalone GitHub/SSH setup
 ├── .zshrc                  # Shell config (sources .zsh/*.zsh)
 ├── .zshrc.local.example    # Template for machine-specific config
 ├── .zsh/
@@ -102,6 +144,16 @@ This way:
 ├── .gitconfig              # Git configuration
 └── .gitignore_global       # Global gitignore
 ```
+
+## Shell Features
+
+| Feature | Description |
+|---------|-------------|
+| **Smart cd** | Uses zoxide - `cd projects` jumps to most-used "projects" dir |
+| **Ctrl+R** | fzf-powered history search (much better than default) |
+| **Colorized man** | Man pages rendered with syntax highlighting via bat |
+| **Tab completion** | fzf-powered with directory previews |
+| **Autosuggestions** | Fish-like command suggestions as you type |
 
 ## Key Bindings
 

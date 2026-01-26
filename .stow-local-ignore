@@ -19,3 +19,4 @@ docs
 
 # Local-only directories (machine-specific settings)
 \.claude
+\.claude-template

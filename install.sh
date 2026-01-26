@@ -391,8 +391,59 @@ EOF
   info "Syncing Neovim plugins (this may take a moment)..."
   nvim --headless "+Lazy sync" "+sleep 10" +qa 2>/dev/null || warn "Neovim plugin sync had issues - run :Lazy sync manually"
 
+  # Optional Claude Code installation
+  setup_claude_code
+
   # Optional GitHub/SSH setup
   setup_github
+}
+
+# ─────────────────────────────────────────────
+# Claude Code Installation (Optional)
+# ─────────────────────────────────────────────
+setup_claude_code() {
+  local claude_installed=false
+
+  # Check if already installed
+  if command -v claude &>/dev/null; then
+    info "Claude Code already installed"
+    claude_installed=true
+  else
+    echo ""
+    echo -e "${BLUE}Would you like to install Claude Code?${NC}"
+    echo "Claude Code is Anthropic's AI coding assistant CLI."
+    echo ""
+    read -p "Install Claude Code? [y/N]: " -n 1 -r
+    echo ""
+
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      info "Skipping Claude Code. Install later: curl -fsSL https://claude.ai/install.sh | bash"
+      return
+    fi
+
+    info "Installing Claude Code..."
+    curl -fsSL https://claude.ai/install.sh | bash
+
+    if command -v claude &>/dev/null; then
+      info "Claude Code installed successfully"
+      claude_installed=true
+    else
+      warn "Claude Code installation may have failed. Try manually:"
+      echo "  curl -fsSL https://claude.ai/install.sh | bash"
+      return
+    fi
+  fi
+
+  # Remind about superpowers plugin
+  if [[ "$claude_installed" == true ]] && [[ ! -d ~/.claude/plugins/marketplaces/superpowers-marketplace ]]; then
+    echo ""
+    info "To complete setup, install superpowers from within Claude Code:"
+    echo ""
+    echo "  1. Start Claude Code:  claude"
+    echo "  2. Add marketplace:    /plugin marketplace add obra/superpowers-marketplace"
+    echo "  3. Install plugin:     /plugin install superpowers@superpowers-marketplace"
+    echo ""
+  fi
 }
 
 # ─────────────────────────────────────────────

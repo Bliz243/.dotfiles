@@ -3,7 +3,7 @@
 # ─────────────────────────────────────────────
 # Tmux Auto-attach
 # ─────────────────────────────────────────────
-# Auto-attach for interactive terminals. Configure via 99-local.zsh:
+# Auto-attach for interactive terminals. Configure via ~/.zshrc.local:
 #
 #   TMUX_AUTO_ATTACH="false"     - Never auto-attach
 #   TMUX_AUTO_ATTACH="ssh-only"  - Only auto-attach in SSH sessions (for VPS/servers)
@@ -97,7 +97,7 @@ zinit cdreplay -q 2>/dev/null  # Suppress replay warnings
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu no
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --color=always --icons $realpath 2>/dev/null || ls --color $realpath'
 
 # ─────────────────────────────────────────────
 # Shell Options
@@ -121,3 +121,28 @@ HISTFILE=~/.zsh_history
 bindkey -e  # Emacs-style keybindings
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
+
+# fzf-powered Ctrl+R history search (much better than default)
+if command -v fzf &>/dev/null; then
+  _fzf_history_search() {
+    local selected
+    selected=$(fc -rl 1 | awk '{$1=""; print substr($0,2)}' | fzf --height 40% --reverse --tac --no-sort --query="$LBUFFER")
+    if [[ -n "$selected" ]]; then
+      LBUFFER="$selected"
+    fi
+    zle redisplay
+  }
+  zle -N _fzf_history_search
+  bindkey '^R' _fzf_history_search
+fi
+
+# ─────────────────────────────────────────────
+# Colorized man pages (using bat)
+# ─────────────────────────────────────────────
+if command -v bat &>/dev/null; then
+  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+  export MANROFFOPT="-c"
+elif command -v batcat &>/dev/null; then
+  export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
+  export MANROFFOPT="-c"
+fi
