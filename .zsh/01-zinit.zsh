@@ -119,8 +119,28 @@ HISTFILE=~/.zsh_history
 # Key Bindings
 # ─────────────────────────────────────────────
 bindkey -e  # Emacs-style keybindings
+
+# History search with arrow keys
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
+
+# Word navigation (Ctrl+Arrow)
+bindkey '^[[1;5C' forward-word      # Ctrl+Right
+bindkey '^[[1;5D' backward-word     # Ctrl+Left
+bindkey '^[OC' forward-word         # Alt fallback
+bindkey '^[OD' backward-word        # Alt fallback
+bindkey '^[[C' forward-char         # Right arrow
+bindkey '^[[D' backward-char        # Left arrow
+
+# Word deletion
+bindkey '^H' backward-kill-word     # Ctrl+Backspace
+bindkey '^[[3;5~' kill-word         # Ctrl+Delete
+
+# Line navigation
+bindkey '^[[H' beginning-of-line    # Home
+bindkey '^[[F' end-of-line          # End
+bindkey '^A' beginning-of-line      # Ctrl+A (fallback)
+bindkey '^E' end-of-line            # Ctrl+E (fallback)
 
 # fzf-powered Ctrl+R history search (much better than default)
 if command -v fzf &>/dev/null; then
