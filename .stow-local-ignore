@@ -2,6 +2,7 @@
 
 # Installation and documentation
 install.sh
+uninstall.sh
 README.md
 LICENSE
 
@@ -14,3 +15,6 @@ docs
 # Git files (stow handles these specially anyway)
 \.git
 \.gitignore
+
+# Local-only directories (machine-specific settings)
+\.claude

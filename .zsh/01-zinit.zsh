@@ -3,16 +3,34 @@
 # ─────────────────────────────────────────────
 # Tmux Auto-attach
 # ─────────────────────────────────────────────
-# Auto-attach for all interactive terminals:
-# - Not already in tmux
-# - Not in VS Code, JetBrains, or other IDEs
-# - Set TMUX_AUTO_ATTACH=false in 99-local.zsh to disable
-if [[ $- == *i* ]] && \
-   [[ -z "$TMUX" ]] && \
-   [[ -z "$VSCODE_RESOLVING_ENVIRONMENT" ]] && \
-   [[ "$TERM_PROGRAM" != "vscode" ]] && \
-   [[ -z "$INTELLIJ_ENVIRONMENT_READER" ]] && \
-   [[ "$TMUX_AUTO_ATTACH" != "false" ]]; then
+# Auto-attach for interactive terminals. Configure via 99-local.zsh:
+#
+#   TMUX_AUTO_ATTACH="false"     - Never auto-attach
+#   TMUX_AUTO_ATTACH="ssh-only"  - Only auto-attach in SSH sessions (for VPS/servers)
+#   TMUX_AUTO_ATTACH="local"     - Only auto-attach in local sessions (not SSH)
+#   TMUX_AUTO_ATTACH="true"      - Always auto-attach (default)
+#
+# This prevents tmux-in-tmux when SSH-ing to a machine with the same dotfiles.
+
+_should_attach_tmux() {
+  # Never if already in tmux
+  [[ -n "$TMUX" ]] && return 1
+
+  # Never in IDEs
+  [[ -n "$VSCODE_RESOLVING_ENVIRONMENT" ]] && return 1
+  [[ "$TERM_PROGRAM" == "vscode" ]] && return 1
+  [[ -n "$INTELLIJ_ENVIRONMENT_READER" ]] && return 1
+
+  # Check user preference
+  case "${TMUX_AUTO_ATTACH:-true}" in
+    false)    return 1 ;;
+    ssh-only) [[ -n "$SSH_CONNECTION" ]] && return 0 || return 1 ;;
+    local)    [[ -z "$SSH_CONNECTION" ]] && return 0 || return 1 ;;
+    *)        return 0 ;;  # "true" or any other value = always attach
+  esac
+}
+
+if [[ $- == *i* ]] && _should_attach_tmux; then
   tmux attach -t default 2>/dev/null || tmux new -s default
 fi
 
@@ -72,8 +90,8 @@ zinit light Aloxaf/fzf-tab
 # Completion System
 # ─────────────────────────────────────────────
 autoload -Uz compinit
-compinit
-zinit cdreplay -q
+compinit -u  # -u: suppress insecure directory warnings
+zinit cdreplay -q 2>/dev/null  # Suppress replay warnings
 
 # Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'

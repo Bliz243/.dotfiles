@@ -35,9 +35,15 @@ if command -v zoxide &>/dev/null; then
   eval "$(zoxide init zsh)"
 fi
 
-# fzf
+# fzf - load key bindings and completion
 if command -v fzf &>/dev/null; then
+  # Linux (apt)
   [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+  # macOS Homebrew (Apple Silicon)
+  [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+  # macOS Homebrew (Intel)
+  [[ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]] && source /usr/local/opt/fzf/shell/key-bindings.zsh
+  # User install
   [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 fi
 

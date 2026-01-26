@@ -21,16 +21,16 @@ return {
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
     config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "lua", "vim", "vimdoc", "bash",
-          "typescript", "javascript", "tsx", "html", "css",
-          "python", "go", "yaml", "json", "dockerfile", "terraform",
-          "markdown", "markdown_inline",
-        },
-        highlight = { enable = true },
-        indent = { enable = true },
-      })
+      local parsers = {
+        "lua", "vim", "vimdoc", "bash",
+        "typescript", "javascript", "tsx", "html", "css",
+        "python", "go", "yaml", "json", "dockerfile", "terraform",
+        "markdown", "markdown_inline",
+      }
+      -- Ensure parsers are installed (only installs missing ones)
+      require("nvim-treesitter").install(parsers)
+      -- Enable treesitter-based features
+      vim.treesitter.language.register("bash", "zsh")
     end,
   },
 

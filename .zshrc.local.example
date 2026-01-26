@@ -1,0 +1,65 @@
+# ~/.zshrc.local - Machine-specific configuration
+# Copy this file to ~/.zshrc.local and customize for each machine.
+# This file is NOT tracked in git.
+
+# ─────────────────────────────────────────────
+# Tmux Configuration
+# ─────────────────────────────────────────────
+# Different prefixes for local vs remote prevents confusion when SSH-ing
+# between machines with the same dotfiles.
+#
+# TMUX_PREFIX - The tmux prefix key
+#   "C-a"  - Ctrl+A (default, recommended for local/WSL)
+#   "C-b"  - Ctrl+B (recommended for VPS/remote servers)
+#
+# TMUX_AUTO_ATTACH - When to auto-attach tmux
+#   "true"      - Always auto-attach (default)
+#   "false"     - Never auto-attach
+#   "ssh-only"  - Only in SSH sessions (good for servers)
+#   "local"     - Only in local sessions, not SSH
+#
+# ─────────────────────────────────────────────
+# Example configurations:
+# ─────────────────────────────────────────────
+#
+# LOCAL MACHINE (WSL/Desktop):
+#   export TMUX_PREFIX="C-a"
+#   TMUX_AUTO_ATTACH="true"
+#
+# REMOTE SERVER (VPS):
+#   export TMUX_PREFIX="C-b"
+#   TMUX_AUTO_ATTACH="ssh-only"
+#
+# Result: Ctrl+A controls local tmux, Ctrl+B controls VPS tmux.
+# Visual: Local uses mocha theme, VPS uses macchiato theme.
+# ─────────────────────────────────────────────
+
+# Uncomment and customize for this machine:
+# export TMUX_PREFIX="C-a"
+# TMUX_AUTO_ATTACH="true"
+
+# ─────────────────────────────────────────────
+# Machine-specific settings
+# ─────────────────────────────────────────────
+
+# Custom PATH entries
+# export PATH="$HOME/bin:$PATH"
+
+# Environment variables
+# export EDITOR="nvim"
+
+# Machine-specific aliases
+# alias work='cd ~/projects'
+
+# Load secrets (API keys, tokens, etc.)
+# [[ -f ~/.secrets ]] && source ~/.secrets
+
+# WSL-specific
+# if [[ -n "$WSL_DISTRO_NAME" ]]; then
+#   export BROWSER="wslview"
+# fi
+
+# macOS-specific
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#   export HOMEBREW_NO_AUTO_UPDATE=1
+# fi
