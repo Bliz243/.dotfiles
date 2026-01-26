@@ -3,6 +3,7 @@
 # Installation and documentation
 install.sh
 uninstall.sh
+setup-github.sh
 README.md
 LICENSE
 

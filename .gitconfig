@@ -174,3 +174,6 @@
 [include]
 	# Include local git config (for machine-specific settings)
 	path = ~/.gitconfig.local
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential

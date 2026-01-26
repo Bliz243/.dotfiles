@@ -124,7 +124,7 @@ install_macos() {
   brew install \
     zsh git curl stow tmux \
     eza bat fd ripgrep fzf zoxide \
-    neovim
+    neovim gh
 
   # Install Nerd Font for terminal
   info "Installing JetBrainsMono Nerd Font..."
@@ -165,6 +165,9 @@ install_linux() {
 
   # Nerd Font for terminal
   install_font_linux
+
+  # GitHub CLI
+  install_gh_linux
 }
 
 install_eza_linux() {
@@ -284,6 +287,23 @@ install_font_linux() {
   info "JetBrainsMono Nerd Font installed"
 }
 
+install_gh_linux() {
+  if command -v gh &>/dev/null; then
+    info "GitHub CLI already installed"
+    return
+  fi
+
+  info "Installing GitHub CLI..."
+
+  # Add GitHub CLI repository
+  sudo mkdir -p /etc/apt/keyrings
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+  sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+  sudo apt update
+  sudo apt install -y gh
+}
+
 # ─────────────────────────────────────────────
 # Stow dotfiles
 # ─────────────────────────────────────────────
@@ -370,6 +390,228 @@ EOF
   # Sync Neovim plugins
   info "Syncing Neovim plugins (this may take a moment)..."
   nvim --headless "+Lazy sync" "+sleep 10" +qa 2>/dev/null || warn "Neovim plugin sync had issues - run :Lazy sync manually"
+
+  # Optional GitHub/SSH setup
+  setup_github
+}
+
+# ─────────────────────────────────────────────
+# GitHub/SSH Setup (Interactive)
+# ─────────────────────────────────────────────
+setup_github() {
+  # Skip if gh not installed
+  if ! command -v gh &>/dev/null; then
+    warn "GitHub CLI not installed, skipping GitHub setup"
+    return
+  fi
+
+  # Ask if user wants to set up GitHub
+  echo ""
+  echo -e "${BLUE}Would you like to set up GitHub authentication?${NC}"
+  echo "This will configure git identity, SSH keys, and GitHub auth."
+  echo ""
+  read -p "Set up GitHub now? [y/N]: " -n 1 -r
+  echo ""
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    info "Skipping. Run later with: ~/.dotfiles/setup-github.sh"
+    return
+  fi
+
+  echo ""
+
+  # Step 1: Git identity (needed for SSH key comment)
+  github_setup_identity
+
+  # Step 2: SSH key
+  github_setup_ssh_key
+
+  # Step 3: SSH config
+  github_setup_ssh_config
+
+  # Step 4: GitHub authentication (gh will offer to upload our SSH key)
+  github_setup_auth
+
+  # Step 5: Verify SSH works
+  github_verify_ssh
+
+  # Step 6: Switch remote to SSH
+  github_switch_remote
+}
+
+github_setup_identity() {
+  local GIT_LOCAL="$HOME/.gitconfig.local"
+
+  info "Step 1: Git Identity"
+
+  # Check existing
+  if [[ -f "$GIT_LOCAL" ]] && grep -q "name = " "$GIT_LOCAL" 2>/dev/null; then
+    echo "  Current:"
+    grep -E "name|email" "$GIT_LOCAL" | sed 's/^/    /'
+    read -p "  Keep this? [Y/n]: " -n 1 -r
+    echo ""
+    [[ ! $REPLY =~ ^[Nn]$ ]] && return 0
+  fi
+
+  # Get name
+  local CURRENT_NAME=$(git config user.name 2>/dev/null || echo "")
+  read -p "  Your name${CURRENT_NAME:+ [$CURRENT_NAME]}: " GIT_NAME
+  GIT_NAME="${GIT_NAME:-$CURRENT_NAME}"
+
+  # Get email
+  local CURRENT_EMAIL=$(git config user.email 2>/dev/null || echo "")
+  echo ""
+  echo "  Tip: Use GitHub noreply for privacy:"
+  echo -e "    ${BLUE}<username>@users.noreply.github.com${NC}"
+  echo ""
+  read -p "  Your email${CURRENT_EMAIL:+ [$CURRENT_EMAIL]}: " GIT_EMAIL
+  GIT_EMAIL="${GIT_EMAIL:-$CURRENT_EMAIL}"
+
+  if [[ -z "$GIT_NAME" || -z "$GIT_EMAIL" ]]; then
+    warn "Name and email required"
+    return 1
+  fi
+
+  cat > "$GIT_LOCAL" << EOF
+[user]
+	name = $GIT_NAME
+	email = $GIT_EMAIL
+EOF
+
+  export GIT_USER_EMAIL="$GIT_EMAIL"
+  info "Saved to $GIT_LOCAL"
+  echo ""
+}
+
+github_setup_ssh_key() {
+  local SSH_DIR="$HOME/.ssh"
+  local SSH_KEY="$SSH_DIR/id_ed25519"
+
+  info "Step 2: SSH Key"
+
+  mkdir -p "$SSH_DIR"
+  chmod 700 "$SSH_DIR"
+
+  if [[ -f "$SSH_KEY" ]]; then
+    echo "  Key exists: $SSH_KEY"
+    echo "  Fingerprint: $(ssh-keygen -lf "$SSH_KEY" 2>/dev/null | awk '{print $2}')"
+    echo ""
+    return 0
+  fi
+
+  local EMAIL="${GIT_USER_EMAIL:-$(git config user.email 2>/dev/null)}"
+  EMAIL="${EMAIL:-user@$(hostname)}"
+
+  ssh-keygen -t ed25519 -C "$EMAIL" -f "$SSH_KEY" -N ""
+  info "SSH key generated"
+  echo ""
+}
+
+github_setup_ssh_config() {
+  local SSH_CONFIG="$HOME/.ssh/config"
+
+  info "Step 3: SSH Config"
+
+  if [[ -f "$SSH_CONFIG" ]] && grep -q "Host github.com" "$SSH_CONFIG" 2>/dev/null; then
+    echo "  GitHub config already exists"
+    echo ""
+    return 0
+  fi
+
+  cat >> "$SSH_CONFIG" << 'EOF'
+
+# GitHub
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+  AddKeysToAgent yes
+  IdentitiesOnly yes
+EOF
+
+  chmod 600 "$SSH_CONFIG"
+  info "SSH config updated"
+  echo ""
+}
+
+github_setup_auth() {
+  info "Step 4: GitHub Authentication"
+
+  if gh auth status &>/dev/null; then
+    echo "  Already authenticated"
+    gh auth setup-git 2>/dev/null || true
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  echo "─────────────────────────────────────────────"
+  if [[ "$MACHINE_TYPE" == "remote" ]] || [[ -n "$SSH_CONNECTION" ]]; then
+    echo -e "${YELLOW}Remote machine detected${NC}"
+    echo ""
+    echo "  1. A one-time code will be shown"
+    echo "  2. On any device, visit:"
+    echo -e "     ${BLUE}https://github.com/login/device${NC}"
+    echo "  3. Enter the code to authenticate"
+  else
+    echo "A browser will open for authentication."
+    echo "If it doesn't, copy the URL shown."
+  fi
+  echo ""
+  echo "When asked about SSH key, select your existing key"
+  echo "and choose to upload it to GitHub."
+  echo "─────────────────────────────────────────────"
+  echo ""
+
+  gh auth login -h github.com -p ssh
+  gh auth setup-git
+
+  info "GitHub authentication complete"
+  echo ""
+}
+
+github_verify_ssh() {
+  info "Step 5: Verify SSH Connection"
+
+  local OUTPUT
+  OUTPUT=$(ssh -T git@github.com 2>&1) || true
+
+  if echo "$OUTPUT" | grep -q "successfully authenticated\|Hi "; then
+    info "SSH connection working!"
+    echo "$OUTPUT" | grep "Hi " | sed 's/^/  /'
+  else
+    warn "SSH test inconclusive. If 'Permission denied', ensure key was uploaded."
+  fi
+  echo ""
+}
+
+github_switch_remote() {
+  info "Step 6: Configure Git Remote"
+
+  if [[ ! -d ".git" ]]; then
+    return
+  fi
+
+  local CURRENT=$(git remote get-url origin 2>/dev/null || echo "")
+
+  if [[ "$CURRENT" == git@* ]]; then
+    echo "  Already using SSH: $CURRENT"
+    echo ""
+    return
+  fi
+
+  if [[ "$CURRENT" == https://github.com/* ]]; then
+    local SSH_URL=$(echo "$CURRENT" | sed 's|https://github.com/|git@github.com:|')
+    echo "  Current: $CURRENT"
+    echo "  SSH:     $SSH_URL"
+    read -p "  Switch to SSH? [Y/n]: " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+      git remote set-url origin "$SSH_URL"
+      info "Remote updated"
+    fi
+  fi
+  echo ""
 }
 
 # ─────────────────────────────────────────────
