@@ -124,13 +124,17 @@ bindkey -e  # Emacs-style keybindings
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 
-# Word navigation (Ctrl+Arrow)
-bindkey '^[[1;5C' forward-word      # Ctrl+Right
-bindkey '^[[1;5D' backward-word     # Ctrl+Left
-bindkey '^[OC' forward-word         # Alt fallback
-bindkey '^[OD' backward-word        # Alt fallback
+# Word navigation (Ctrl+Arrow) - multiple terminal escape sequences
+bindkey '^[[1;5C' forward-word      # Ctrl+Right (xterm)
+bindkey '^[[1;5D' backward-word     # Ctrl+Left (xterm)
+bindkey '^[^[[C' forward-word       # Alt+Right (some terminals)
+bindkey '^[^[[D' backward-word      # Alt+Left (some terminals)
+
+# Single character navigation (regular arrows)
 bindkey '^[[C' forward-char         # Right arrow
 bindkey '^[[D' backward-char        # Left arrow
+bindkey '^[OC' forward-char         # Right arrow (application mode)
+bindkey '^[OD' backward-char        # Left arrow (application mode)
 
 # Word deletion
 bindkey '^H' backward-kill-word     # Ctrl+Backspace
