@@ -180,6 +180,8 @@ setup_gh_auth() {
 
     # Ensure git is configured to use gh
     gh auth setup-git 2>/dev/null || true
+
+    # Still need to check if SSH key is uploaded (handled in next step)
     return 0
   fi
 
@@ -194,9 +196,11 @@ setup_gh_auth() {
     echo -e "     ${BLUE}https://github.com/login/device${NC}"
     echo ""
     echo "  3. Enter the code to authenticate"
+    echo "  4. When asked about SSH key, choose to upload it"
   else
     echo "A browser will open for authentication."
     echo "If it doesn't, copy the URL shown."
+    echo "When asked about SSH key, choose to upload it."
   fi
   echo "─────────────────────────────────────────────"
   echo ""
@@ -213,7 +217,7 @@ setup_gh_auth() {
 }
 
 # ─────────────────────────────────────────────
-# Step 5: Verify SSH Connection
+# Step 5: Verify SSH Connection (and fix if needed)
 # ─────────────────────────────────────────────
 verify_ssh() {
   echo -e "${BLUE}Step 5: Verify SSH Connection${NC}"
@@ -228,12 +232,50 @@ verify_ssh() {
   if echo "$OUTPUT" | grep -q "successfully authenticated\|Hi "; then
     info "SSH connection working!"
     echo "$OUTPUT" | grep "Hi " | sed 's/^/  /'
-  else
-    warn "SSH connection test inconclusive"
-    echo "  Output: $OUTPUT"
     echo ""
-    echo "  If you see 'Permission denied', make sure you uploaded"
-    echo "  your SSH key when gh auth login prompted."
+    return 0
+  fi
+
+  # SSH failed - try to fix it
+  warn "SSH connection failed: $OUTPUT"
+  echo ""
+
+  # Check if key exists
+  if [[ ! -f ~/.ssh/id_ed25519.pub ]]; then
+    error "No SSH key found. Run setup again."
+    return 1
+  fi
+
+  # Try to add the key to GitHub
+  info "Attempting to add SSH key to GitHub..."
+  echo ""
+
+  # Need admin:public_key scope
+  echo "Refreshing GitHub auth to add SSH key permissions..."
+  gh auth refresh -h github.com -s admin:public_key || {
+    warn "Could not refresh auth. Add key manually at https://github.com/settings/keys"
+    echo ""
+    echo "Your public key:"
+    cat ~/.ssh/id_ed25519.pub
+    return 1
+  }
+
+  # Add the key
+  local KEY_TITLE="$(hostname)-$(date +%Y%m%d)"
+  gh ssh-key add ~/.ssh/id_ed25519.pub --title "$KEY_TITLE" || {
+    warn "Could not add key. It may already exist on GitHub."
+  }
+
+  # Test again
+  echo ""
+  info "Testing SSH connection again..."
+  OUTPUT=$(ssh -T git@github.com 2>&1) || true
+
+  if echo "$OUTPUT" | grep -q "successfully authenticated\|Hi "; then
+    info "SSH connection working!"
+    echo "$OUTPUT" | grep "Hi " | sed 's/^/  /'
+  else
+    warn "SSH still not working. Check https://github.com/settings/keys"
   fi
   echo ""
 }
