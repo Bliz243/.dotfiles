@@ -90,7 +90,14 @@ zinit light Aloxaf/fzf-tab
 # Completion System
 # ─────────────────────────────────────────────
 autoload -Uz compinit
-compinit -u  # -u: suppress insecure directory warnings
+
+# Initialize completions
+# -u: ignore insecure directories
+# 2>/dev/null: suppress warnings about missing completion files
+#   (e.g., _docker symlink when Docker isn't installed)
+#   This is normal for dotfiles that work across multiple machines
+compinit -u 2>/dev/null
+
 zinit cdreplay -q 2>/dev/null  # Suppress replay warnings
 
 # Completion styling
