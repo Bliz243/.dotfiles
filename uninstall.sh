@@ -52,9 +52,47 @@ unstow_dotfiles() {
 }
 
 # ─────────────────────────────────────────────
+# Remove Claude config symlinks
+# ─────────────────────────────────────────────
+unlink_claude_config() {
+  info "Removing Claude config symlinks..."
+
+  CLAUDE_DIR="$HOME/.claude"
+
+  # Remove symlinked files (only if they're symlinks)
+  [[ -L "$CLAUDE_DIR/settings.json" ]] && rm -f "$CLAUDE_DIR/settings.json"
+  [[ -L "$CLAUDE_DIR/statusline.js" ]] && rm -f "$CLAUDE_DIR/statusline.js"
+
+  # Remove symlinked hooks
+  for hook in "$CLAUDE_DIR/hooks/"*.js; do
+    [[ -L "$hook" ]] && rm -f "$hook"
+  done
+
+  # Remove symlinked config files
+  for config in "$CLAUDE_DIR/config/"*; do
+    [[ -L "$config" ]] && rm -f "$config"
+  done
+
+  # Remove symlinked skills
+  for skill in "$CLAUDE_DIR/skills/"*/; do
+    [[ -L "${skill%/}" ]] && rm -f "${skill%/}"
+  done
+
+  # Remove symlinked agents
+  for agent in "$CLAUDE_DIR/agents/"*.md; do
+    [[ -L "$agent" ]] && rm -f "$agent"
+  done
+
+  info "Claude config symlinks removed"
+}
+
+# ─────────────────────────────────────────────
 # Optional: Remove installed components
 # ─────────────────────────────────────────────
 remove_components() {
+  # Always remove Claude config symlinks
+  unlink_claude_config
+
   echo ""
   read -p "Also remove TPM and Neovim plugins? (y/N) " -n 1 -r
   echo

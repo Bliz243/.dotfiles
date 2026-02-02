@@ -1,0 +1,84 @@
+{
+  "version": "2.0",
+  "description": "Global skill activation rules. Projects can extend with their own skill-rules.json.",
+
+  "skills": {
+    "superpowers:brainstorming": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Design before coding - explore requirements and approaches",
+      "promptTriggers": {
+        "patterns": [
+          "(let'?s\\s+)?(build|implement|create|add|develop)\\s+(a\\s+)?(new\\s+)?(feature|component|system|module|service)",
+          "(think\\s+(about|through)|consider\\s+(the|this|alternatives?)|should\\s+we|what\\s+if)",
+          "(options?|approach(es)?|best\\s+way|how\\s+should|evaluate|compare|trade-?offs?)",
+          "(architect(ure)?|design\\s+(the|a|this)|structure|reorganize|refactor)"
+        ]
+      },
+      "activation": {
+        "icon": "*",
+        "skill": "superpowers:brainstorming",
+        "message": "Design before coding"
+      }
+    },
+
+    "superpowers:systematic-debugging": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Structured debugging approach",
+      "promptTriggers": {
+        "patterns": [
+          "(bug|fix|error|issue|broken|not working|fails?|debug|troubleshoot)"
+        ]
+      },
+      "activation": {
+        "icon": "*",
+        "skill": "superpowers:systematic-debugging",
+        "message": "Structured debugging"
+      }
+    },
+
+    "explore-agent": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Use Explore subagent to preserve main context",
+      "promptTriggers": {
+        "patterns": [
+          "(find|search|look\\s+for|locate|where\\s+is|where\\s+are|show\\s+me)\\s+(all|the|any)?\\s*(files?|code|implementation|function|class|component|pattern)",
+          "(how\\s+does|how\\s+do|how\\s+is)\\s+(the|this|our)\\s+[\\w\\s]+\\s+(work|implemented|structured|organized)",
+          "(understand|explore|analyze|investigate|examine)\\s+(the|this|our)?\\s*(codebase|code|implementation|feature|module|domain)",
+          "what\\s+(files?|code|components?)\\s+(handle|implement|contain|have)",
+          "where\\s+(is|are|do|does)\\s+[\\w\\s]+(defined|implemented|located|handled|used)"
+        ]
+      },
+      "activation": {
+        "icon": "*",
+        "skill": null,
+        "message": "Use Explore agent - subagents preserve your context"
+      }
+    },
+
+    "ultra-frontend": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Distinctive, production-grade frontend interfaces",
+      "promptTriggers": {
+        "patterns": [
+          "(build|create|design|implement|make)\\s+(a\\s+)?(web|frontend|ui|interface|component|page|landing|dashboard)",
+          "(style|beautify|redesign|improve)\\s+(the|this|a)?\\s*(ui|interface|component|page|design)",
+          "(html|css|react|vue|svelte)\\s+(component|page|layout)",
+          "(landing\\s+page|dashboard|form|card|modal|navbar|header|footer)"
+        ]
+      },
+      "activation": {
+        "icon": "*",
+        "skill": "ultra-frontend",
+        "message": "Distinctive UI design"
+      }
+    }
+  }
+}

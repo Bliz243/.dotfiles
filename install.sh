@@ -391,11 +391,82 @@ EOF
   info "Syncing Neovim plugins (this may take a moment)..."
   nvim --headless "+Lazy sync" "+sleep 10" +qa 2>/dev/null || warn "Neovim plugin sync had issues - run :Lazy sync manually"
 
+  # Claude Code configuration (symlinks for global config)
+  setup_claude_config
+
   # Optional Claude Code installation
   setup_claude_code
 
   # Optional GitHub/SSH setup
   setup_github
+}
+
+# ─────────────────────────────────────────────
+# Claude Config Setup (Symlinks for global config)
+# ─────────────────────────────────────────────
+setup_claude_config() {
+  info "Setting up Claude Code configuration..."
+
+  CLAUDE_DIR="$HOME/.claude"
+  DOTFILES_CLAUDE="$HOME/.dotfiles/.claude"
+
+  # Skip if dotfiles claude config doesn't exist
+  if [[ ! -d "$DOTFILES_CLAUDE" ]]; then
+    warn "No Claude config in dotfiles, skipping"
+    return
+  fi
+
+  # Create directories if needed
+  mkdir -p "$CLAUDE_DIR/hooks"
+  mkdir -p "$CLAUDE_DIR/config"
+  mkdir -p "$CLAUDE_DIR/skills"
+  mkdir -p "$CLAUDE_DIR/agents"
+
+  # Helper to symlink with backup
+  link_claude_file() {
+    local src="$1"
+    local dest="$2"
+
+    if [[ -e "$dest" ]] && [[ ! -L "$dest" ]]; then
+      local backup="${dest}.backup-$(date +%Y%m%d-%H%M%S)"
+      mv "$dest" "$backup"
+      warn "Backed up: $dest → $backup"
+    fi
+
+    ln -sf "$src" "$dest"
+  }
+
+  # Symlink individual files
+  [[ -f "$DOTFILES_CLAUDE/CLAUDE.md" ]] && link_claude_file "$DOTFILES_CLAUDE/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+  [[ -f "$DOTFILES_CLAUDE/settings.json" ]] && link_claude_file "$DOTFILES_CLAUDE/settings.json" "$CLAUDE_DIR/settings.json"
+  [[ -f "$DOTFILES_CLAUDE/statusline.js" ]] && link_claude_file "$DOTFILES_CLAUDE/statusline.js" "$CLAUDE_DIR/statusline.js"
+
+  # Symlink hooks
+  for hook in "$DOTFILES_CLAUDE/hooks/"*.js; do
+    [[ -f "$hook" ]] || continue
+    link_claude_file "$hook" "$CLAUDE_DIR/hooks/$(basename "$hook")"
+  done
+
+  # Symlink config files
+  for config in "$DOTFILES_CLAUDE/config/"*; do
+    [[ -e "$config" ]] || continue
+    link_claude_file "$config" "$CLAUDE_DIR/config/$(basename "$config")"
+  done
+
+  # Symlink skills (as directories)
+  for skill in "$DOTFILES_CLAUDE/skills/"*/; do
+    [[ -d "$skill" ]] || continue
+    local skill_name=$(basename "$skill")
+    link_claude_file "$skill" "$CLAUDE_DIR/skills/$skill_name"
+  done
+
+  # Symlink agents
+  for agent in "$DOTFILES_CLAUDE/agents/"*.md; do
+    [[ -f "$agent" ]] || continue
+    link_claude_file "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
+  done
+
+  info "Claude Code configuration linked"
 }
 
 # ─────────────────────────────────────────────
