@@ -10,7 +10,8 @@
 const fs = require('fs');
 
 // Skip all checks on remote machines (disposable VPS, etc.)
-if (process.env.MACHINE_TYPE === 'remote') {
+// Or when user explicitly says "bypass" to override a block
+if (process.env.MACHINE_TYPE === 'remote' || process.env.GUARD_BYPASS === '1') {
   console.log(JSON.stringify({ decision: "allow" }));
   process.exit(0);
 }
@@ -105,23 +106,23 @@ const mediumPatterns = [
   { pattern: /sudo\s+mkfs/i, label: "sudo mkfs" },
 ];
 
-// Check HIGH severity (block with warning)
+// Check HIGH severity (block - run manually if needed)
 for (const { pattern, label } of highPatterns) {
   if (pattern.test(command)) {
     console.log(JSON.stringify({
       decision: "block",
-      message: `[HIGH] Blocked: ${label}\n\nCommand: ${command}\n\nThis command is blocked by command-guard. If intentional, run manually.`
+      message: `[HIGH] Blocked: ${label}\n\nCommand: ${command}\n\nRun manually if intentional.`
     }));
     process.exit(0);
   }
 }
 
-// Check MEDIUM severity (ask for confirmation)
+// Check MEDIUM severity (block - say "bypass" to proceed)
 for (const { pattern, label } of mediumPatterns) {
   if (pattern.test(command)) {
     console.log(JSON.stringify({
-      decision: "ask",
-      message: `[MEDIUM] Confirm: ${label}\n\nCommand: ${command}`
+      decision: "block",
+      message: `[MEDIUM] Blocked: ${label}\n\nCommand: ${command}\n\nSay "bypass" to proceed.`
     }));
     process.exit(0);
   }
