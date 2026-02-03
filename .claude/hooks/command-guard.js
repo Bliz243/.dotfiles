@@ -9,8 +9,9 @@
 
 const fs = require('fs');
 
-// Skip all checks on remote machines (disposable VPS, etc.)
-if (process.env.MACHINE_TYPE === 'remote') {
+// Only run guard when CLAUDE_GUARD=1 (set by ccd alias for --dangerously-skip-permissions)
+// Skip on remote machines (disposable VPS)
+if (process.env.CLAUDE_GUARD !== '1' || process.env.MACHINE_TYPE === 'remote') {
   console.log(JSON.stringify({ decision: "allow" }));
   process.exit(0);
 }

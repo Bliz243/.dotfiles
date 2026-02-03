@@ -140,7 +140,7 @@ function formatActiveWork(activeWork) {
   if (activeWork.adHoc) {
     return `${purple}󰈙 ad-hoc${reset}`;
   }
-  return `${gray}󰈙 none${reset}`;
+  return null;
 }
 
 // ===== GIT INFO =====
@@ -212,8 +212,9 @@ function main() {
   const branch = getGitBranch(cwd);
   const branchStr = branch ? `${lGray}󰘬 ${branch}${reset}` : '';
 
-  // Line 1: Context | Block status | Active work
-  const line1Parts = [contextBar, blockedStr, activeWorkStr];
+  // Line 1: Context | Block status | Active work (if any)
+  const line1Parts = [contextBar, blockedStr];
+  if (activeWorkStr) line1Parts.push(activeWorkStr);
   console.log(line1Parts.join(' | '));
 
   // Git info

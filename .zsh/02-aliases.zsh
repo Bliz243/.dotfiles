@@ -60,7 +60,7 @@ alias e='$EDITOR'
 # ─────────────────────────────────────────────
 # Claude Code
 # ─────────────────────────────────────────────
-alias ccd='claude --dangerously-skip-permissions'
+alias ccd='CLAUDE_GUARD=1 claude --dangerously-skip-permissions'
 
 # ─────────────────────────────────────────────
 # Git Shortcuts
