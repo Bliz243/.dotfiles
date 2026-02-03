@@ -48,8 +48,15 @@ function formatContextBar(contextWindow) {
   if (pctInt >= 80) barColor = colors.red;
   else if (pctInt >= 50) barColor = colors.orange;
 
+  // Show total conversation tokens (input + output)
+  const input = contextWindow?.total_input_tokens ?? 0;
+  const output = contextWindow?.total_output_tokens ?? 0;
+  const total = contextWindow?.context_window_size || 200000;
+  const used = input + output;
+  const tokenStr = ` (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)`;
+
   return `${barColor}${'█'.repeat(filled)}${colors.gray}${'░'.repeat(empty)}${colors.reset} ` +
-         `${colors.lGray}${pct.toFixed(0)}%${colors.reset}`;
+         `${colors.lGray}${pct.toFixed(0)}%${tokenStr}${colors.reset}`;
 }
 
 // ===== BLOCKED STATE =====
