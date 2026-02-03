@@ -9,6 +9,12 @@
 
 const fs = require('fs');
 
+// Skip all checks on remote machines (disposable VPS, etc.)
+if (process.env.MACHINE_TYPE === 'remote') {
+  console.log(JSON.stringify({ decision: "allow" }));
+  process.exit(0);
+}
+
 let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, 'utf-8'));

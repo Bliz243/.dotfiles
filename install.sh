@@ -371,6 +371,7 @@ post_install() {
 # Remote server configuration (VPS)
 # Uses Ctrl+B to avoid conflicts when SSH-ing from local machine
 
+export MACHINE_TYPE="remote"
 export TMUX_PREFIX="C-b"
 TMUX_AUTO_ATTACH="ssh-only"
 EOF
@@ -380,6 +381,7 @@ EOF
 # Local machine configuration (WSL/Desktop)
 # Uses Ctrl+A as tmux prefix
 
+export MACHINE_TYPE="local"
 export TMUX_PREFIX="C-a"
 TMUX_AUTO_ATTACH="true"
 EOF

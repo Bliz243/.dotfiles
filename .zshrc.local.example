@@ -18,20 +18,27 @@
 #   "ssh-only"  - Only in SSH sessions (good for servers)
 #   "local"     - Only in local sessions, not SSH
 #
+# MACHINE_TYPE - Machine classification (used by Claude Code hooks)
+#   "local"   - Local machine (WSL/Desktop) - enables command-guard safety
+#   "remote"  - Remote server (VPS) - disables command-guard (disposable)
+#
 # ─────────────────────────────────────────────
 # Example configurations:
 # ─────────────────────────────────────────────
 #
 # LOCAL MACHINE (WSL/Desktop):
+#   export MACHINE_TYPE="local"
 #   export TMUX_PREFIX="C-a"
 #   TMUX_AUTO_ATTACH="true"
 #
 # REMOTE SERVER (VPS):
+#   export MACHINE_TYPE="remote"
 #   export TMUX_PREFIX="C-b"
 #   TMUX_AUTO_ATTACH="ssh-only"
 #
 # Result: Ctrl+A controls local tmux, Ctrl+B controls VPS tmux.
 # Visual: Local uses mocha theme, VPS uses macchiato theme.
+# Safety: command-guard only runs on local machines.
 # ─────────────────────────────────────────────
 
 # Uncomment and customize for this machine:
