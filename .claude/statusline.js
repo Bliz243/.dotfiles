@@ -2,25 +2,15 @@
 /**
  * statusline.js - Status line for Claude Code
  *
- * Line 1: Context usage | Block status | Active work
- * Line 2: Uncommitted files | Upstream status | Git branch
+ * Single line: Context | Block | Git info
+ * Claude Code only uses the FIRST line of stdout
  */
 
 const fs = require('fs');
-const path = require('path');
-const os = require('os');
 const { execSync } = require('child_process');
 
-const {
-  CONTEXT_LIMIT,
-  getStatePaths,
-  getTokenUsage,
-  getActiveWork
-} = require('./lib/shared');
+const { getStatePaths, getActiveWork } = require('./lib/shared');
 
-// Local constants (only used by statusline)
-// Minimum tokens to display - avoids showing near-zero for fresh sessions
-const CONTEXT_MIN_DISPLAY = 17000;
 // How long to show "Blocked" status after a command is blocked (matches bypass TTL)
 const BLOCKED_TTL_MS = 30000;
 
@@ -35,7 +25,7 @@ const colors = {
   reset: '\x1b[0m'
 };
 
-// Read stdin
+// Read stdin JSON from Claude Code
 let data = {};
 try {
   data = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -43,13 +33,12 @@ try {
   data = {};
 }
 
-const cwd = data.cwd || process.cwd();
-const transcriptPath = data.transcript_path || null;
+const cwd = data.cwd || data.workspace?.current_dir || process.cwd();
 
-// ===== CONTEXT USAGE =====
-function formatContextBar(tokens) {
-  const displayTokens = tokens && tokens > CONTEXT_MIN_DISPLAY ? tokens : CONTEXT_MIN_DISPLAY;
-  const pct = (displayTokens / CONTEXT_LIMIT) * 100;
+// ===== CONTEXT USAGE (using Claude Code's provided data) =====
+function formatContextBar(contextWindow) {
+  // Use pre-calculated percentage from Claude Code, fallback to 0
+  const pct = contextWindow?.used_percentage ?? 0;
   const pctInt = Math.min(Math.floor(pct), 100);
 
   const filled = Math.min(Math.floor(pctInt / 10), 10);
@@ -59,11 +48,16 @@ function formatContextBar(tokens) {
   if (pctInt >= 80) barColor = colors.red;
   else if (pctInt >= 50) barColor = colors.orange;
 
-  const formattedTokens = `${Math.floor(displayTokens / 1000)}k`;
-  const formattedLimit = `${Math.floor(CONTEXT_LIMIT / 1000)}k`;
+  // Format tokens if available
+  let tokenStr = '';
+  if (contextWindow?.current_usage) {
+    const used = contextWindow.current_usage.input_tokens || 0;
+    const total = contextWindow.context_window_size || 200000;
+    tokenStr = ` (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)`;
+  }
 
-  return `${colors.lGray}󱃖 ${barColor}${'█'.repeat(filled)}${colors.gray}${'░'.repeat(empty)}${colors.reset} ` +
-         `${colors.lGray}${pct.toFixed(1)}% (${formattedTokens}/${formattedLimit})${colors.reset}`;
+  return `${barColor}${'█'.repeat(filled)}${colors.gray}${'░'.repeat(empty)}${colors.reset} ` +
+         `${colors.lGray}${pct.toFixed(0)}%${tokenStr}${colors.reset}`;
 }
 
 // ===== BLOCKED STATE =====
@@ -72,27 +66,8 @@ function getBlockedState(projectDir) {
   try {
     const content = JSON.parse(fs.readFileSync(lastBlockedPath, 'utf8'));
     if (typeof content.timestamp !== 'number') return null;
-    const ageMs = Date.now() - content.timestamp;
-    if (ageMs < BLOCKED_TTL_MS) {
-      return content;
-    }
+    if (Date.now() - content.timestamp < BLOCKED_TTL_MS) return content;
   } catch { /* ignore */ }
-  return null;
-}
-
-function formatBlocked(blocked) {
-  if (!blocked) return `${colors.green}No Block${colors.reset}`;
-  return `${colors.red}Blocked${colors.reset}`;
-}
-
-// ===== ACTIVE WORK =====
-function formatActiveWork(activeWork) {
-  if (activeWork.designDoc) {
-    return `${colors.purple}󰈙 ${activeWork.designDoc}${colors.reset}`;
-  }
-  if (activeWork.adHoc) {
-    return `${colors.purple}󰈙 ad-hoc${colors.reset}`;
-  }
   return null;
 }
 
@@ -101,8 +76,6 @@ function getGitInfo(dir) {
   const result = { branch: null, ahead: 0, behind: 0, uncommitted: 0 };
 
   try {
-    // Single git call for all info: branch, upstream, and file status
-    // Use cwd option instead of -C flag to avoid command injection
     const output = execSync('git status --porcelain=v2 -b', {
       cwd: dir,
       encoding: 'utf8',
@@ -110,83 +83,67 @@ function getGitInfo(dir) {
     });
 
     for (const line of output.split('\n')) {
-      // Branch info: # branch.head <name>
-      const branchPrefix = '# branch.head ';
-      if (line.startsWith(branchPrefix)) {
-        result.branch = line.slice(branchPrefix.length);
+      if (line.startsWith('# branch.head ')) {
+        result.branch = line.slice(14);
         if (result.branch === '(detached)') {
-          // Get short commit hash for detached HEAD
           try {
             result.branch = '@' + execSync('git rev-parse --short HEAD', {
-              cwd: dir,
-              encoding: 'utf8',
-              stdio: ['pipe', 'pipe', 'pipe']
+              cwd: dir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
             }).trim();
           } catch { result.branch = '@detached'; }
         }
-      }
-      // Upstream ahead/behind: # branch.ab +<ahead> -<behind>
-      else if (line.startsWith('# branch.ab ')) {
+      } else if (line.startsWith('# branch.ab ')) {
         const match = line.match(/\+(\d+) -(\d+)/);
         if (match) {
           result.ahead = parseInt(match[1], 10);
           result.behind = parseInt(match[2], 10);
         }
-      }
-      // Changed files: lines starting with 1 or 2 (ordinary/renamed)
-      else if (line.startsWith('1 ') || line.startsWith('2 ')) {
-        result.uncommitted++;
-      }
-      // Untracked: lines starting with ?
-      else if (line.startsWith('? ')) {
+      } else if (line.startsWith('1 ') || line.startsWith('2 ') || line.startsWith('? ')) {
         result.uncommitted++;
       }
     }
-  } catch {
-    // Not a git repo or git not available
-  }
+  } catch { /* Not a git repo */ }
 
   return result;
 }
 
 // ===== MAIN =====
 function main() {
-  // Context bar
-  const tokens = getTokenUsage(transcriptPath);
-  const contextBar = formatContextBar(tokens);
+  const parts = [];
+
+  // Context bar (using Claude Code's provided context_window data)
+  parts.push(formatContextBar(data.context_window));
 
   // Blocked state
   const blocked = getBlockedState(cwd);
-  const blockedStr = formatBlocked(blocked);
+  if (blocked) {
+    parts.push(`${colors.red}Blocked${colors.reset}`);
+  } else {
+    parts.push(`${colors.green}OK${colors.reset}`);
+  }
 
-  // Active work
-  const activeWork = getActiveWork(cwd);
-  const activeWorkStr = formatActiveWork(activeWork);
-
-  // Git info (single call)
+  // Git info
   const git = getGitInfo(cwd);
-
-  // Line 1: Context | Block status | Active work (if any)
-  const line1Parts = [contextBar, blockedStr];
-  if (activeWorkStr) line1Parts.push(activeWorkStr);
-  console.log(line1Parts.join(' | '));
-
-  // Line 2: Uncommitted | Upstream | Branch
-  const line2Parts = [];
-  line2Parts.push(`${colors.orange}✎ ${git.uncommitted}${colors.reset}`);
-
-  const upstreamParts = [];
-  if (git.ahead > 0) upstreamParts.push(`↑${git.ahead}`);
-  if (git.behind > 0) upstreamParts.push(`↓${git.behind}`);
-  if (upstreamParts.length > 0) {
-    line2Parts.push(`${colors.orange}${upstreamParts.join(' ')}${colors.reset}`);
-  }
-
   if (git.branch) {
-    line2Parts.push(`${colors.lGray}󰘬 ${git.branch}${colors.reset}`);
+    let gitStr = `${colors.lGray}${git.branch}${colors.reset}`;
+    if (git.uncommitted > 0) {
+      gitStr += `${colors.orange} +${git.uncommitted}${colors.reset}`;
+    }
+    if (git.ahead > 0) gitStr += `${colors.orange} ↑${git.ahead}${colors.reset}`;
+    if (git.behind > 0) gitStr += `${colors.orange} ↓${git.behind}${colors.reset}`;
+    parts.push(gitStr);
   }
 
-  console.log(line2Parts.join(' | '));
+  // Active work (compact)
+  const activeWork = getActiveWork(cwd);
+  if (activeWork.designDoc) {
+    parts.push(`${colors.purple}${activeWork.designDoc}${colors.reset}`);
+  } else if (activeWork.adHoc) {
+    parts.push(`${colors.purple}ad-hoc${colors.reset}`);
+  }
+
+  // Single line output - Claude Code only uses first line
+  console.log(parts.join(' | '));
 }
 
 main();
