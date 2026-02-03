@@ -93,10 +93,8 @@ autoload -Uz compinit
 
 # Initialize completions
 # -u: ignore insecure directories
-# 2>/dev/null: suppress warnings about missing completion files
-#   (e.g., _docker symlink when Docker isn't installed)
-#   This is normal for dotfiles that work across multiple machines
-compinit -u 2>/dev/null
+# &>/dev/null: suppress errors from broken symlinks (e.g., Docker WSL integration)
+compinit -u &>/dev/null
 
 zinit cdreplay -q 2>/dev/null  # Suppress replay warnings
 
