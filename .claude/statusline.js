@@ -50,8 +50,8 @@ function formatContextBar(contextWindow) {
 
   // Format tokens if available
   let tokenStr = '';
-  if (contextWindow?.current_usage) {
-    const used = contextWindow.current_usage.input_tokens || 0;
+  if (contextWindow?.total_input_tokens != null) {
+    const used = contextWindow.total_input_tokens;
     const total = contextWindow.context_window_size || 200000;
     tokenStr = ` (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)`;
   }
