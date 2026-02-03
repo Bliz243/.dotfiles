@@ -10,8 +10,7 @@
 const fs = require('fs');
 
 // Skip all checks on remote machines (disposable VPS, etc.)
-// Or when user explicitly says "yert" to override a block
-if (process.env.MACHINE_TYPE === 'remote' || process.env.GUARD_BYPASS === '1') {
+if (process.env.MACHINE_TYPE === 'remote') {
   console.log(JSON.stringify({ decision: "allow" }));
   process.exit(0);
 }
@@ -33,6 +32,22 @@ if (tool !== 'Bash') {
 }
 
 const command = toolInput.command || '';
+const path = require('path');
+const os = require('os');
+
+// Check for bypass token (user said "yert")
+const bypassTokenPath = path.join(os.homedir(), '.claude', 'state', 'guard-bypass');
+try {
+  const stat = fs.statSync(bypassTokenPath);
+  const ageMs = Date.now() - stat.mtimeMs;
+  if (ageMs < 30000) { // Token valid for 30 seconds
+    fs.unlinkSync(bypassTokenPath); // One-time use
+    console.log(JSON.stringify({ decision: "allow" }));
+    process.exit(0);
+  }
+} catch (e) {
+  // Token doesn't exist, continue with checks
+}
 
 // Commands inside containers are generally safe
 const isContainerCommand = /^(docker|podman|kubectl)\s+(exec|run)\s/.test(command) &&
