@@ -61,7 +61,14 @@ function formatContextBar(contextWindow) {
 }
 
 // ===== BLOCKED STATE =====
+// Guard is only active when CLAUDE_GUARD=1 and not on remote machines
+function isGuardActive() {
+  return process.env.CLAUDE_GUARD === '1' && process.env.MACHINE_TYPE !== 'remote';
+}
+
 function getBlockedState(projectDir) {
+  if (!isGuardActive()) return null;
+
   const { lastBlockedPath } = getStatePaths(projectDir);
   try {
     const content = JSON.parse(fs.readFileSync(lastBlockedPath, 'utf8'));
@@ -114,12 +121,14 @@ function main() {
   // Context bar (using Claude Code's provided context_window data)
   parts.push(formatContextBar(data.context_window));
 
-  // Blocked state
-  const blocked = getBlockedState(cwd);
-  if (blocked) {
-    parts.push(`${colors.red}Blocked${colors.reset}`);
-  } else {
-    parts.push(`${colors.green}OK${colors.reset}`);
+  // Guard status (only show when guard is active)
+  if (isGuardActive()) {
+    const blocked = getBlockedState(cwd);
+    if (blocked) {
+      parts.push(`${colors.red}Blocked${colors.reset}`);
+    } else {
+      parts.push(`${colors.green}OK${colors.reset}`);
+    }
   }
 
   // Git info
