@@ -46,8 +46,9 @@ if (isContainerCommand) {
 // HIGH severity - critical security risks
 const highPatterns = [
   // File destruction - catch all combinations of -r/-R/--recursive with -f/--force
-  { pattern: /rm\s+(?=.*(-r|-R|--recursive))(?=.*(-f|--force))/i, label: "recursive force delete" },
-  { pattern: /rm\s+(-f|--force)/i, label: "force delete" },
+  // Handles: -rf, -fr, -r -f, --recursive --force, and mixed
+  { pattern: /rm\s+(-[rRfF]{2,}|(?=.*(-r|-R|--recursive))(?=.*(-f|--force)))/i, label: "recursive force delete" },
+  { pattern: /rm\s+.*(-f|--force)/i, label: "force delete" },
 
   // Permission disasters
   { pattern: /chmod\s+777/i, label: "world-writable permissions" },
