@@ -10,7 +10,7 @@
 const fs = require('fs');
 
 // Skip all checks on remote machines (disposable VPS, etc.)
-// Or when user explicitly says "bypass" to override a block
+// Or when user explicitly says "yert" to override a block
 if (process.env.MACHINE_TYPE === 'remote' || process.env.GUARD_BYPASS === '1') {
   console.log(JSON.stringify({ decision: "allow" }));
   process.exit(0);
@@ -122,7 +122,7 @@ for (const { pattern, label } of mediumPatterns) {
   if (pattern.test(command)) {
     console.log(JSON.stringify({
       decision: "block",
-      message: `[MEDIUM] Blocked: ${label}\n\nCommand: ${command}\n\nSay "bypass" to proceed.`
+      message: `[MEDIUM] Blocked: ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
     }));
     process.exit(0);
   }
