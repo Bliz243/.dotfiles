@@ -83,6 +83,24 @@ function formatContextBar(tokens) {
          `${lGray}${pct.toFixed(1)}% (${formattedTokens}/${formattedLimit})${reset}`;
 }
 
+// ===== BLOCKED COMMAND =====
+function getBlockedState() {
+  const blockedPath = path.join(process.env.HOME, '.claude', 'state', 'last-blocked.json');
+  try {
+    const content = JSON.parse(fs.readFileSync(blockedPath, 'utf-8'));
+    const ageMs = Date.now() - content.timestamp;
+    if (ageMs < 60000) { // Only show if recent (< 60 seconds)
+      return content;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+function formatBlocked(blocked) {
+  if (!blocked) return `${green}No Block${reset}`;
+  return `${red}Blocked${reset}`;
+}
+
 // ===== ACTIVE WORK =====
 function getActiveWork(projectDir) {
   const result = { designDoc: null, adHoc: false };
@@ -182,6 +200,10 @@ function main() {
   const tokens = getContextUsage(transcriptPath);
   const contextBar = formatContextBar(tokens);
 
+  // Blocked command check
+  const blocked = getBlockedState();
+  const blockedStr = formatBlocked(blocked);
+
   // Active work
   const activeWork = getActiveWork(projectDir);
   const activeWorkStr = formatActiveWork(activeWork);
@@ -190,8 +212,8 @@ function main() {
   const branch = getGitBranch(cwd);
   const branchStr = branch ? `${lGray}󰘬 ${branch}${reset}` : '';
 
-  // Line 1: Context | Active work
-  const line1Parts = [contextBar, activeWorkStr];
+  // Line 1: Context | Block status | Active work
+  const line1Parts = [contextBar, blockedStr, activeWorkStr];
   console.log(line1Parts.join(' | '));
 
   // Git info

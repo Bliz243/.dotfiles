@@ -35,18 +35,35 @@ const command = toolInput.command || '';
 const path = require('path');
 const os = require('os');
 
+const stateDir = path.join(os.homedir(), '.claude', 'state');
+const bypassTokenPath = path.join(stateDir, 'guard-bypass');
+const lastBlockedPath = path.join(stateDir, 'last-blocked.json');
+
 // Check for bypass token (user said "yert")
-const bypassTokenPath = path.join(os.homedir(), '.claude', 'state', 'guard-bypass');
 try {
   const stat = fs.statSync(bypassTokenPath);
   const ageMs = Date.now() - stat.mtimeMs;
   if (ageMs < 30000) { // Token valid for 30 seconds
     fs.unlinkSync(bypassTokenPath); // One-time use
+    try { fs.unlinkSync(lastBlockedPath); } catch (e) {} // Clear blocked state
     console.log(JSON.stringify({ decision: "allow" }));
     process.exit(0);
   }
 } catch (e) {
   // Token doesn't exist, continue with checks
+}
+
+// Helper to write blocked state for statusline
+function writeBlockedState(severity, label, cmd) {
+  try {
+    fs.mkdirSync(stateDir, { recursive: true });
+    fs.writeFileSync(lastBlockedPath, JSON.stringify({
+      severity,
+      label,
+      command: cmd.substring(0, 100), // Truncate for display
+      timestamp: Date.now()
+    }));
+  } catch (e) {}
 }
 
 // Commands inside containers are generally safe
@@ -124,6 +141,7 @@ const mediumPatterns = [
 // Check HIGH severity (block - run manually if needed)
 for (const { pattern, label } of highPatterns) {
   if (pattern.test(command)) {
+    writeBlockedState('HIGH', label, command);
     console.log(JSON.stringify({
       decision: "block",
       message: `[HIGH] Blocked: ${label}\n\nCommand: ${command}\n\nRun manually if intentional.`
@@ -132,9 +150,10 @@ for (const { pattern, label } of highPatterns) {
   }
 }
 
-// Check MEDIUM severity (block - say "bypass" to proceed)
+// Check MEDIUM severity (block - say "yert" to proceed)
 for (const { pattern, label } of mediumPatterns) {
   if (pattern.test(command)) {
+    writeBlockedState('MEDIUM', label, command);
     console.log(JSON.stringify({
       decision: "block",
       message: `[MEDIUM] Blocked: ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
