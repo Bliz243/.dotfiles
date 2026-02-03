@@ -84,12 +84,14 @@ function formatContextBar(tokens) {
 }
 
 // ===== BLOCKED COMMAND =====
+const os = require('os');
+
 function getBlockedState() {
-  const blockedPath = path.join(process.env.HOME, '.claude', 'state', 'last-blocked.json');
+  const blockedPath = path.join(os.homedir(), '.claude', 'state', 'last-blocked.json');
   try {
-    const content = JSON.parse(fs.readFileSync(blockedPath, 'utf-8'));
+    const content = JSON.parse(fs.readFileSync(blockedPath, 'utf8'));
     const ageMs = Date.now() - content.timestamp;
-    if (ageMs < 60000) { // Only show if recent (< 60 seconds)
+    if (ageMs < 30000) { // Match bypass token TTL (30 seconds)
       return content;
     }
   } catch { /* ignore */ }

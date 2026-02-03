@@ -8,6 +8,8 @@
  */
 
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 // Only run guard when CLAUDE_GUARD=1 (set by ccd alias for --dangerously-skip-permissions)
 // Skip on remote machines (disposable VPS)
@@ -18,7 +20,7 @@ if (process.env.CLAUDE_GUARD !== '1' || process.env.MACHINE_TYPE === 'remote') {
 
 let input = {};
 try {
-  input = JSON.parse(fs.readFileSync(0, 'utf-8'));
+  input = JSON.parse(fs.readFileSync(0, 'utf8'));
 } catch (e) {
   console.log(JSON.stringify({ decision: "allow" }));
   process.exit(0);
@@ -33,19 +35,21 @@ if (tool !== 'Bash') {
 }
 
 const command = toolInput.command || '';
-const path = require('path');
-const os = require('os');
 
+// State paths
 const stateDir = path.join(os.homedir(), '.claude', 'state');
 const bypassTokenPath = path.join(stateDir, 'guard-bypass');
 const lastBlockedPath = path.join(stateDir, 'last-blocked.json');
+
+// Bypass token validity (seconds)
+const BYPASS_TTL_MS = 30000;
 
 // Check for bypass token (user said "yert")
 try {
   const stat = fs.statSync(bypassTokenPath);
   const ageMs = Date.now() - stat.mtimeMs;
-  if (ageMs < 30000) { // Token valid for 30 seconds
-    fs.unlinkSync(bypassTokenPath); // One-time use
+  if (ageMs < BYPASS_TTL_MS) {
+    try { fs.unlinkSync(bypassTokenPath); } catch (e) {} // One-time use
     try { fs.unlinkSync(lastBlockedPath); } catch (e) {} // Clear blocked state
     console.log(JSON.stringify({ decision: "allow" }));
     process.exit(0);
@@ -61,7 +65,7 @@ function writeBlockedState(severity, label, cmd) {
     fs.writeFileSync(lastBlockedPath, JSON.stringify({
       severity,
       label,
-      command: cmd.substring(0, 100), // Truncate for display
+      command: cmd.substring(0, 100),
       timestamp: Date.now()
     }));
   } catch (e) {}
@@ -79,16 +83,19 @@ if (isContainerCommand) {
 
 // HIGH severity - critical security risks
 const highPatterns = [
-  // File destruction - recursive + force is critical (blocks rm -rf, rm -r -f, etc.)
+  // File destruction - recursive + force is critical
   { pattern: /rm\s+(-[rRfF]{2,}|(?=.*(-r|-R|--recursive))(?=.*(-f|--force)))/i, label: "recursive force delete" },
 
   // Permission disasters
   { pattern: /chmod\s+777/i, label: "world-writable permissions" },
   { pattern: /chmod\s+(-R|--recursive)/i, label: "recursive permission change" },
 
-  // Remote code execution - catch sh, bash, zsh, dash, ksh, fish, and interpreters
+  // Remote code execution - pipes to shell/interpreters
   { pattern: /curl\s+.*\|\s*(\w*sh|python|perl|ruby|node)\b/i, label: "curl pipe to shell" },
   { pattern: /wget\s+.*\|\s*(\w*sh|python|perl|ruby|node)\b/i, label: "wget pipe to shell" },
+
+  // Shell -c execution (can hide dangerous commands)
+  { pattern: /\b(bash|sh|zsh|dash)\s+-c\s/i, label: "shell -c execution" },
 
   // Disk destruction
   { pattern: /\bdd\s+if=/i, label: "raw disk operation" },
@@ -103,12 +110,16 @@ const highPatterns = [
   // Database destruction
   { pattern: /DROP\s+(DATABASE|SCHEMA|TABLE)/i, label: "SQL DROP" },
   { pattern: /TRUNCATE\s+(TABLE\s+)?\w/i, label: "SQL TRUNCATE" },
-  { pattern: /DELETE\s+FROM\s+\S+\s*(;|$)/i, label: "DELETE without WHERE" },
+  { pattern: /DELETE\s+FROM\s+\w+\s*(;|$)/i, label: "DELETE without WHERE" },
+
+  // Dangerous find/xargs patterns
+  { pattern: /find\s+.*-delete/i, label: "find -delete" },
+  { pattern: /xargs\s+.*rm\s/i, label: "xargs rm" },
 ];
 
-// MEDIUM severity - potentially dangerous
+// MEDIUM severity - potentially dangerous but bypassable
 const mediumPatterns = [
-  // Force delete (non-recursive) - common in scripts but worth confirming
+  // Force delete (non-recursive)
   { pattern: /rm\s+.*(-f|--force)/i, label: "force delete" },
 
   // Git dangers
