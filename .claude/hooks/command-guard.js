@@ -8,77 +8,11 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const { getStatePaths } = require('../lib/shared');
 
-// Only run guard when CLAUDE_GUARD=1 (set by ccd alias for --dangerously-skip-permissions)
-// Skip on remote machines (disposable VPS)
-if (process.env.CLAUDE_GUARD !== '1' || process.env.MACHINE_TYPE === 'remote') {
-  console.log(JSON.stringify({ decision: "allow" }));
-  process.exit(0);
-}
-
-let input = {};
-try {
-  input = JSON.parse(fs.readFileSync(0, 'utf8'));
-} catch (e) {
-  console.log(JSON.stringify({ decision: "allow" }));
-  process.exit(0);
-}
-
-const tool = input.tool_name || '';
-const toolInput = input.tool_input || {};
-
-if (tool !== 'Bash') {
-  console.log(JSON.stringify({ decision: "allow" }));
-  process.exit(0);
-}
-
-const command = toolInput.command || '';
-
-// Session-scoped state paths (prevents cross-worktree bypass leakage)
-const { stateDir, bypassTokenPath, lastBlockedPath } = getStatePaths();
-
-// Bypass token validity
+// Bypass token validity - 30 seconds gives user time to retry without rushing
 const BYPASS_TTL_MS = 30000;
-
-// Check if valid bypass token exists (doesn't consume it)
-function hasValidBypassToken() {
-  try {
-    const stat = fs.statSync(bypassTokenPath);
-    return (Date.now() - stat.mtimeMs) < BYPASS_TTL_MS;
-  } catch (e) {
-    return false;
-  }
-}
-
-// Consume bypass token (one-time use)
-function consumeBypassToken() {
-  try { fs.unlinkSync(bypassTokenPath); } catch (e) {}
-  try { fs.unlinkSync(lastBlockedPath); } catch (e) {}
-}
-
-// Helper to write blocked state for statusline
-function writeBlockedState(severity, label, cmd) {
-  try {
-    fs.mkdirSync(stateDir, { recursive: true });
-    fs.writeFileSync(lastBlockedPath, JSON.stringify({
-      severity,
-      label,
-      command: cmd.substring(0, 100),
-      timestamp: Date.now()
-    }));
-  } catch (e) {}
-}
-
-// Commands inside containers are generally safe
-const isContainerCommand = /^(docker|podman|kubectl)\s+(exec|run)\s/.test(command) &&
-  !/--privileged/.test(command) &&
-  !/-v\s+\/:\//i.test(command);
-
-if (isContainerCommand) {
-  console.log(JSON.stringify({ decision: "allow" }));
-  process.exit(0);
-}
 
 // HIGH severity - critical security risks
 const highPatterns = [
@@ -93,6 +27,10 @@ const highPatterns = [
   { pattern: /curl\s+.*\|\s*(\w*sh|python|perl|ruby|node)\b/i, label: "curl pipe to shell" },
   { pattern: /wget\s+.*\|\s*(\w*sh|python|perl|ruby|node)\b/i, label: "wget pipe to shell" },
 
+  // Process substitution to shell (bypasses pipe detection)
+  { pattern: /\b(bash|sh|zsh|dash|source)\s+<\s*\(\s*(curl|wget)\b/i, label: "process substitution to shell" },
+  { pattern: /(?:^|\s)\.\s+<\s*\(\s*(curl|wget)\b/i, label: "dot-source process substitution" },
+
   // Shell -c execution (can hide dangerous commands)
   { pattern: /\b(bash|sh|zsh|dash)\s+-c\s/i, label: "shell -c execution" },
 
@@ -102,9 +40,9 @@ const highPatterns = [
   { pattern: /\bfdisk\b/i, label: "disk partitioning" },
   { pattern: />\s*\/dev\/sd/i, label: "direct device write" },
 
-  // Git history destruction
-  { pattern: /git\s+push\s+.*--force(?!-with-lease)/i, label: "force push" },
-  { pattern: /git\s+push\s+-f\b/i, label: "force push" },
+  // Git history destruction (force push without lease)
+  { pattern: /git\s+push\b.*\s--force(?!-with-lease)\b/i, label: "force push" },
+  { pattern: /git\s+push\b.*\s-[a-zA-Z]*f/i, label: "force push" },
 
   // Database destruction
   { pattern: /DROP\s+(DATABASE|SCHEMA|TABLE)/i, label: "SQL DROP" },
@@ -134,9 +72,11 @@ const mediumPatterns = [
   { pattern: /gem\s+push/i, label: "RubyGems publish" },
   { pattern: /cargo\s+publish/i, label: "crates.io publish" },
 
-  // Container escapes
-  { pattern: /docker\s+run\s+.*--privileged/i, label: "privileged container" },
-  { pattern: /docker\s+run\s+.*-v\s+\/:\//i, label: "root mount container" },
+  // Container escapes (any runtime)
+  { pattern: /(docker|podman|nerdctl)\s+run\s+.*--privileged/i, label: "privileged container" },
+  { pattern: /(docker|podman|nerdctl)\s+run\s+.*-v\s+\/:\//i, label: "root mount container" },
+  { pattern: /(docker|podman|nerdctl)\s+run\s+.*--cap-add[=\s]+(SYS_ADMIN|ALL)/i, label: "dangerous capabilities" },
+  { pattern: /(docker|podman|nerdctl)\s+run\s+.*--security-opt[=\s]+(seccomp[=:]unconfined|apparmor[=:]unconfined)/i, label: "disabled security" },
 
   // Code injection
   { pattern: /\beval\s+/i, label: "eval execution" },
@@ -149,39 +89,127 @@ const mediumPatterns = [
   { pattern: /sudo\s+mkfs/i, label: "sudo mkfs" },
 ];
 
-// Check HIGH severity - bypassable with "yert"
-for (const { pattern, label } of highPatterns) {
-  if (pattern.test(command)) {
-    if (hasValidBypassToken()) {
-      consumeBypassToken();
-      console.log(JSON.stringify({ decision: "allow" }));
-      process.exit(0);
-    }
-    writeBlockedState('HIGH', label, command);
-    console.log(JSON.stringify({
-      decision: "block",
-      message: `[HIGH] Blocked: ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
-    }));
-    process.exit(0);
-  }
+// Export patterns for testing
+module.exports = { highPatterns, mediumPatterns };
+
+// Only run guard logic when executed directly (not when required for testing)
+if (require.main === module) {
+  runGuard();
 }
 
-// Check MEDIUM severity - bypassable with "yert"
-for (const { pattern, label } of mediumPatterns) {
-  if (pattern.test(command)) {
-    if (hasValidBypassToken()) {
-      consumeBypassToken();
-      console.log(JSON.stringify({ decision: "allow" }));
-      process.exit(0);
-    }
-    writeBlockedState('MEDIUM', label, command);
-    console.log(JSON.stringify({
-      decision: "block",
-      message: `[MEDIUM] Blocked: ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
-    }));
+function runGuard() {
+  // Global error handler - fail open to avoid blocking user
+  process.on('uncaughtException', () => {
+    console.log(JSON.stringify({ decision: "allow" }));
+    process.exit(0);
+  });
+
+  // Only run guard when CLAUDE_GUARD=1 (set by ccd alias for --dangerously-skip-permissions)
+  // Skip on remote machines (disposable VPS)
+  if (process.env.CLAUDE_GUARD !== '1' || process.env.MACHINE_TYPE === 'remote') {
+    console.log(JSON.stringify({ decision: "allow" }));
     process.exit(0);
   }
-}
 
-// Allow everything else
-console.log(JSON.stringify({ decision: "allow" }));
+  let input = {};
+  try {
+    input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  } catch (e) {
+    console.log(JSON.stringify({ decision: "allow" }));
+    process.exit(0);
+  }
+
+  const tool = input.tool_name || '';
+  const toolInput = input.tool_input || {};
+
+  if (tool !== 'Bash') {
+    console.log(JSON.stringify({ decision: "allow" }));
+    process.exit(0);
+  }
+
+  const command = toolInput.command || '';
+
+  // Session-scoped state paths (prevents cross-worktree bypass leakage)
+  const { stateDir, bypassTokenPath, lastBlockedPath } = getStatePaths();
+
+  /**
+   * Atomically consume bypass token if valid.
+   * Uses rename to prevent TOCTOU race conditions - if two processes try to consume,
+   * only one rename will succeed.
+   */
+  function tryConsumeBypassToken() {
+    const consumedPath = path.join(stateDir, `consumed-${Date.now()}-${process.pid}`);
+    try {
+      // Atomic rename - only one process can succeed
+      fs.renameSync(bypassTokenPath, consumedPath);
+
+      // Check if token was still valid (within TTL)
+      const stat = fs.statSync(consumedPath);
+      const isValid = (Date.now() - stat.mtimeMs) < BYPASS_TTL_MS;
+
+      // Clean up consumed token and blocked state
+      try { fs.unlinkSync(consumedPath); } catch (e) {}
+      if (isValid) {
+        try { fs.unlinkSync(lastBlockedPath); } catch (e) {}
+      }
+
+      return isValid;
+    } catch (e) {
+      // ENOENT = token doesn't exist or already consumed by another process
+      return false;
+    }
+  }
+
+  // Helper to write blocked state for statusline
+  function writeBlockedState(severity, label, cmd) {
+    try {
+      fs.mkdirSync(stateDir, { recursive: true });
+      fs.writeFileSync(lastBlockedPath, JSON.stringify({
+        severity,
+        label,
+        command: cmd.substring(0, 100),
+        timestamp: Date.now()
+      }));
+    } catch (e) {}
+  }
+
+  // Commands inside containers are generally safe (unless using escape vectors)
+  const containerCmdMatch = /^(docker|podman|kubectl|nerdctl|crictl)\s+(exec|run)\s/.test(command);
+  const hasEscapeVector = /--privileged/.test(command) ||
+    /-v\s+\/:\//i.test(command) ||
+    /--cap-add[=\s]+(SYS_ADMIN|ALL)/i.test(command) ||
+    /--security-opt[=\s]+(seccomp[=:]unconfined|apparmor[=:]unconfined)/i.test(command);
+  const isContainerCommand = containerCmdMatch && !hasEscapeVector;
+
+  if (isContainerCommand) {
+    console.log(JSON.stringify({ decision: "allow" }));
+    process.exit(0);
+  }
+
+  /**
+   * Check command against pattern list and handle blocking/bypass
+   */
+  function checkPatterns(patterns, severity) {
+    for (const { pattern, label } of patterns) {
+      if (pattern.test(command)) {
+        if (tryConsumeBypassToken()) {
+          console.log(JSON.stringify({ decision: "allow" }));
+          process.exit(0);
+        }
+        writeBlockedState(severity, label, command);
+        console.log(JSON.stringify({
+          decision: "block",
+          message: `[${severity}] Blocked: ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
+        }));
+        process.exit(0);
+      }
+    }
+  }
+
+  // Check patterns in order of severity
+  checkPatterns(highPatterns, 'HIGH');
+  checkPatterns(mediumPatterns, 'MEDIUM');
+
+  // Allow everything else
+  console.log(JSON.stringify({ decision: "allow" }));
+}

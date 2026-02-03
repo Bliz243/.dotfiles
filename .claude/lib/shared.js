@@ -60,9 +60,11 @@ function getTokenUsage(transcriptPath) {
     }
 
     if (usage) {
-      return (usage.input_tokens || 0) +
-             (usage.cache_read_input_tokens || 0) +
-             (usage.cache_creation_input_tokens || 0);
+      const toNum = (v) => Number(v) || 0;
+      return toNum(usage.input_tokens) +
+             toNum(usage.output_tokens) +
+             toNum(usage.cache_read_input_tokens) +
+             toNum(usage.cache_creation_input_tokens);
     }
   } catch { /* ignore */ }
 

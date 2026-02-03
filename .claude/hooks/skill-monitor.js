@@ -15,12 +15,25 @@
  * Adding new skills = update skill-rules.json, no code changes here.
  */
 
+// Global error handler - prevent hook crashes from breaking workflow
+process.on('uncaughtException', () => {
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: '[[ ultrathink ]]\n\n'
+    }
+  }));
+  process.exit(0);
+});
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
 const {
   CONTEXT_LIMIT,
+  STATE_DIR,
+  getSessionKey,
   getStatePaths,
   getTokenUsage,
   getActiveWork
@@ -114,8 +127,12 @@ function matchesSkill(prompt, skill) {
 
   // Check patterns (regex match)
   if (skill.promptTriggers?.patterns) {
-    if (skill.promptTriggers.patterns.some(p => new RegExp(p, 'i').test(prompt))) {
-      return true;
+    for (const p of skill.promptTriggers.patterns) {
+      try {
+        if (new RegExp(p, 'i').test(prompt)) return true;
+      } catch (e) {
+        console.error(`[skill-monitor] Invalid regex pattern "${p}": ${e.message}`);
+      }
     }
   }
 
@@ -123,14 +140,18 @@ function matchesSkill(prompt, skill) {
 }
 
 // ===== PROCESS ALL SKILLS =====
+const VALID_ENFORCEMENT = ['block', 'suggest', 'remind'];
+
 function processSkills(prompt, config) {
   const matched = { block: [], suggest: [], remind: [] };
 
   for (const [name, skill] of Object.entries(config.skills || {})) {
     if (matchesSkill(prompt, skill)) {
       const enforcement = skill.enforcement || 'suggest';
-      if (matched[enforcement]) {
+      if (VALID_ENFORCEMENT.includes(enforcement)) {
         matched[enforcement].push({ name, ...skill });
+      } else {
+        console.error(`[skill-monitor] Invalid enforcement "${enforcement}" for skill "${name}"`);
       }
     }
   }
@@ -208,23 +229,25 @@ function generateSkillOutput(matched) {
 
 // ===== TOKEN MONITORING =====
 
+function getWarningStatePath() {
+  const sessionKey = getSessionKey(projectDir);
+  return path.join(STATE_DIR, `session-warnings-${sessionKey}.json`);
+}
+
 function getWarningState() {
-  const statePath = path.join(projectDir, '.claude/state/session-warnings.json');
   try {
-    return JSON.parse(fs.readFileSync(statePath, 'utf-8'));
+    return JSON.parse(fs.readFileSync(getWarningStatePath(), 'utf-8'));
   } catch (e) {
     return { warned_70: false, warned_80: false, warned_90: false, session_id: null };
   }
 }
 
 function setWarningState(state) {
-  const stateDir = path.join(projectDir, '.claude/state');
-  const statePath = path.join(stateDir, 'session-warnings.json');
   try {
-    if (!fs.existsSync(stateDir)) {
-      fs.mkdirSync(stateDir, { recursive: true });
+    if (!fs.existsSync(STATE_DIR)) {
+      fs.mkdirSync(STATE_DIR, { recursive: true });
     }
-    fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
+    fs.writeFileSync(getWarningStatePath(), JSON.stringify(state, null, 2));
   } catch (e) { /* ignore */ }
 }
 

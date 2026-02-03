@@ -19,7 +19,9 @@ const {
 } = require('./lib/shared');
 
 // Local constants (only used by statusline)
+// Minimum tokens to display - avoids showing near-zero for fresh sessions
 const CONTEXT_MIN_DISPLAY = 17000;
+// How long to show "Blocked" status after a command is blocked (matches bypass TTL)
 const BLOCKED_TTL_MS = 30000;
 
 // ANSI colors
