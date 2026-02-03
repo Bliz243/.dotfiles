@@ -37,8 +37,11 @@ const cwd = data.cwd || data.workspace?.current_dir || process.cwd();
 
 // ===== CONTEXT USAGE (using Claude Code's provided data) =====
 function formatContextBar(contextWindow) {
-  // Use pre-calculated percentage from Claude Code, fallback to 0
-  const pct = contextWindow?.used_percentage ?? 0;
+  const total = contextWindow?.context_window_size || 200000;
+  const used = contextWindow?.total_input_tokens ?? 0;
+
+  // Calculate percentage from actual tokens for consistency
+  const pct = total > 0 ? (used / total) * 100 : 0;
   const pctInt = Math.min(Math.floor(pct), 100);
 
   const filled = Math.min(Math.floor(pctInt / 10), 10);
@@ -48,13 +51,7 @@ function formatContextBar(contextWindow) {
   if (pctInt >= 80) barColor = colors.red;
   else if (pctInt >= 50) barColor = colors.orange;
 
-  // Format tokens if available
-  let tokenStr = '';
-  if (contextWindow?.total_input_tokens != null) {
-    const used = contextWindow.total_input_tokens;
-    const total = contextWindow.context_window_size || 200000;
-    tokenStr = ` (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)`;
-  }
+  const tokenStr = ` (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)`;
 
   return `${barColor}${'█'.repeat(filled)}${colors.gray}${'░'.repeat(empty)}${colors.reset} ` +
          `${colors.lGray}${pct.toFixed(0)}%${tokenStr}${colors.reset}`;
