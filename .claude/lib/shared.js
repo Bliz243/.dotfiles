@@ -1,0 +1,114 @@
+/**
+ * shared.js - Shared utilities for Claude hooks
+ */
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const os = require('os');
+
+// Shared constants
+const CONTEXT_LIMIT = 160000;
+const STATE_DIR = path.join(os.homedir(), '.claude', 'state');
+
+/**
+ * Generate a session key from the working directory
+ * Used to scope state files per-worktree
+ * @param {string} cwd - Working directory (defaults to process.cwd())
+ * @returns {string} - 8-character hex hash
+ */
+function getSessionKey(cwd = process.cwd()) {
+  // Normalize path to handle trailing slashes and relative components
+  const normalized = path.resolve(cwd);
+  return crypto.createHash('md5').update(normalized).digest('hex').slice(0, 8);
+}
+
+/**
+ * Get paths for session-scoped state files
+ * @param {string} cwd - Working directory
+ * @returns {object} - { stateDir, bypassTokenPath, lastBlockedPath }
+ */
+function getStatePaths(cwd = process.cwd()) {
+  const sessionKey = getSessionKey(cwd);
+  return {
+    stateDir: STATE_DIR,
+    bypassTokenPath: path.join(STATE_DIR, `guard-bypass-${sessionKey}`),
+    lastBlockedPath: path.join(STATE_DIR, `last-blocked-${sessionKey}.json`)
+  };
+}
+
+/**
+ * Get token usage from transcript file
+ * @param {string} transcriptPath - Path to transcript JSONL file
+ * @returns {number|null} - Total tokens used, or null if unavailable
+ */
+function getTokenUsage(transcriptPath) {
+  if (!transcriptPath || !fs.existsSync(transcriptPath)) return null;
+
+  try {
+    const lines = fs.readFileSync(transcriptPath, 'utf8').split('\n');
+    let usage = null;
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const d = JSON.parse(line);
+        if (!d.isSidechain && d.message?.usage) {
+          usage = d.message.usage;
+        }
+      } catch { /* ignore parse errors */ }
+    }
+
+    if (usage) {
+      return (usage.input_tokens || 0) +
+             (usage.cache_read_input_tokens || 0) +
+             (usage.cache_creation_input_tokens || 0);
+    }
+  } catch { /* ignore */ }
+
+  return null;
+}
+
+/**
+ * Detect active work in project
+ * @param {string} projectDir - Project root directory
+ * @returns {object} - { designDoc: string|null, adHoc: boolean }
+ */
+function getActiveWork(projectDir) {
+  const result = { designDoc: null, adHoc: false };
+
+  const designsDir = path.join(projectDir, 'docs/designs');
+  if (fs.existsSync(designsDir)) {
+    try {
+      const docs = fs.readdirSync(designsDir).filter(f => f.endsWith('.md'));
+      for (const doc of docs) {
+        const content = fs.readFileSync(path.join(designsDir, doc), 'utf8');
+        if (/Status:\s*(Active|In Progress|Exploring)/i.test(content)) {
+          result.designDoc = doc.replace('.md', '');
+          break;
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  const awPath = path.join(projectDir, 'docs/active_work.md');
+  if (fs.existsSync(awPath)) {
+    try {
+      const content = fs.readFileSync(awPath, 'utf8');
+      // True if Current Focus section exists and has content (not just a link placeholder)
+      result.adHoc = content.includes('## Current Focus') &&
+                     !/## Current Focus\n\n?\[/.test(content);
+    } catch { /* ignore */ }
+  }
+
+  return result;
+}
+
+module.exports = {
+  CONTEXT_LIMIT,
+  STATE_DIR,
+  getSessionKey,
+  getStatePaths,
+  getTokenUsage,
+  getActiveWork
+};

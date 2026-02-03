@@ -19,6 +19,13 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+const {
+  CONTEXT_LIMIT,
+  getStatePaths,
+  getTokenUsage,
+  getActiveWork
+} = require('../lib/shared');
+
 // Skip in CI environments
 if (process.env.CI || process.env.GITHUB_ACTIONS) {
   console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: '' } }));
@@ -37,6 +44,29 @@ const prompt = input.prompt || '';
 const transcriptPath = input.transcript_path || '';
 const projectDir = process.cwd();
 const homeDir = os.homedir();
+
+// Session-scoped state paths (prevents cross-worktree bypass leakage)
+const { stateDir, bypassTokenPath } = getStatePaths(projectDir);
+
+// ===== BYPASS TOKEN HANDLING =====
+// When user says "yert", create bypass token for command-guard
+if (/^\s*yert\s*$/i.test(prompt)) {
+  try {
+    fs.mkdirSync(stateDir, { recursive: true });
+    fs.writeFileSync(bypassTokenPath, String(Date.now()));
+
+    // Output confirmation that bypass is ready
+    console.log(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'UserPromptSubmit',
+        additionalContext: '[[ ultrathink ]]\n\nBypass token created. You may now retry the blocked command.\n'
+      }
+    }));
+    process.exit(0);
+  } catch (e) {
+    // Continue with normal flow if bypass creation fails
+  }
+}
 
 // ===== CONFIG LOADING =====
 function loadSkillRules(configPath) {
@@ -176,59 +206,7 @@ function generateSkillOutput(matched) {
   return output;
 }
 
-// ===== SESSION ORIENTATION =====
-function getActiveWork() {
-  const result = { designDoc: null, activeWork: false };
-
-  const designsDir = path.join(projectDir, 'docs/designs');
-  if (fs.existsSync(designsDir)) {
-    try {
-      const docs = fs.readdirSync(designsDir).filter(f => f.endsWith('.md'));
-      for (const doc of docs) {
-        const content = fs.readFileSync(path.join(designsDir, doc), 'utf8');
-        if (/Status:\s*(Active|In Progress|Exploring)/i.test(content)) {
-          result.designDoc = `docs/designs/${doc}`;
-          break;
-        }
-      }
-    } catch (e) { /* ignore */ }
-  }
-
-  const awPath = path.join(projectDir, 'docs/active_work.md');
-  if (fs.existsSync(awPath)) {
-    try {
-      const content = fs.readFileSync(awPath, 'utf8');
-      result.activeWork = content.includes('## Current Focus') &&
-                          !/## Current Focus\n\n?\[/.test(content);
-    } catch (e) { /* ignore */ }
-  }
-
-  return result;
-}
-
 // ===== TOKEN MONITORING =====
-function getTokenUsage(tp) {
-  if (!tp || !fs.existsSync(tp)) return 0;
-  try {
-    const lines = fs.readFileSync(tp, 'utf8').split('\n');
-    let usage = null;
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        const d = JSON.parse(line);
-        if (!d.isSidechain && d.message?.usage) {
-          usage = d.message.usage;
-        }
-      } catch (e) { /* ignore parse errors */ }
-    }
-    if (usage) {
-      return (usage.input_tokens || 0) +
-             (usage.cache_read_input_tokens || 0) +
-             (usage.cache_creation_input_tokens || 0);
-    }
-  } catch (e) { /* ignore */ }
-  return 0;
-}
 
 function getWarningState() {
   const statePath = path.join(projectDir, '.claude/state/session-warnings.json');
@@ -261,18 +239,17 @@ const matched = processSkills(prompt, config);
 context += generateSkillOutput(matched);
 
 // Session orientation
-const activeWork = getActiveWork();
-if (activeWork.designDoc || activeWork.activeWork) {
+const activeWork = getActiveWork(projectDir);
+if (activeWork.designDoc || activeWork.adHoc) {
   context += 'ACTIVE WORK DETECTED:\n';
-  if (activeWork.designDoc) context += `   Design: ${activeWork.designDoc}\n`;
-  if (activeWork.activeWork) context += '   Ad-hoc: docs/active_work.md\n';
+  if (activeWork.designDoc) context += `   Design: docs/designs/${activeWork.designDoc}.md\n`;
+  if (activeWork.adHoc) context += '   Ad-hoc: docs/active_work.md\n';
   context += '   -> Read to understand current state\n\n';
 }
 
 // Token monitoring
-const tokens = getTokenUsage(transcriptPath);
-const limit = 160000;
-const pct = tokens > 0 ? (tokens / limit) * 100 : 0;
+const tokens = getTokenUsage(transcriptPath) || 0;
+const pct = tokens > 0 ? (tokens / CONTEXT_LIMIT) * 100 : 0;
 
 const sessionId = transcriptPath ? path.basename(transcriptPath, '.jsonl') : null;
 let warningState = getWarningState();

@@ -8,8 +8,7 @@
  */
 
 const fs = require('fs');
-const path = require('path');
-const os = require('os');
+const { getStatePaths } = require('../lib/shared');
 
 // Only run guard when CLAUDE_GUARD=1 (set by ccd alias for --dangerously-skip-permissions)
 // Skip on remote machines (disposable VPS)
@@ -36,26 +35,26 @@ if (tool !== 'Bash') {
 
 const command = toolInput.command || '';
 
-// State paths
-const stateDir = path.join(os.homedir(), '.claude', 'state');
-const bypassTokenPath = path.join(stateDir, 'guard-bypass');
-const lastBlockedPath = path.join(stateDir, 'last-blocked.json');
+// Session-scoped state paths (prevents cross-worktree bypass leakage)
+const { stateDir, bypassTokenPath, lastBlockedPath } = getStatePaths();
 
-// Bypass token validity (seconds)
+// Bypass token validity
 const BYPASS_TTL_MS = 30000;
 
-// Check for bypass token (user said "yert")
-try {
-  const stat = fs.statSync(bypassTokenPath);
-  const ageMs = Date.now() - stat.mtimeMs;
-  if (ageMs < BYPASS_TTL_MS) {
-    try { fs.unlinkSync(bypassTokenPath); } catch (e) {} // One-time use
-    try { fs.unlinkSync(lastBlockedPath); } catch (e) {} // Clear blocked state
-    console.log(JSON.stringify({ decision: "allow" }));
-    process.exit(0);
+// Check if valid bypass token exists (doesn't consume it)
+function hasValidBypassToken() {
+  try {
+    const stat = fs.statSync(bypassTokenPath);
+    return (Date.now() - stat.mtimeMs) < BYPASS_TTL_MS;
+  } catch (e) {
+    return false;
   }
-} catch (e) {
-  // Token doesn't exist, continue with checks
+}
+
+// Consume bypass token (one-time use)
+function consumeBypassToken() {
+  try { fs.unlinkSync(bypassTokenPath); } catch (e) {}
+  try { fs.unlinkSync(lastBlockedPath); } catch (e) {}
 }
 
 // Helper to write blocked state for statusline
@@ -150,21 +149,31 @@ const mediumPatterns = [
   { pattern: /sudo\s+mkfs/i, label: "sudo mkfs" },
 ];
 
-// Check HIGH severity (block - run manually if needed)
+// Check HIGH severity - bypassable with "yert"
 for (const { pattern, label } of highPatterns) {
   if (pattern.test(command)) {
+    if (hasValidBypassToken()) {
+      consumeBypassToken();
+      console.log(JSON.stringify({ decision: "allow" }));
+      process.exit(0);
+    }
     writeBlockedState('HIGH', label, command);
     console.log(JSON.stringify({
       decision: "block",
-      message: `[HIGH] Blocked: ${label}\n\nCommand: ${command}\n\nRun manually if intentional.`
+      message: `[HIGH] Blocked: ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
     }));
     process.exit(0);
   }
 }
 
-// Check MEDIUM severity (block - say "yert" to proceed)
+// Check MEDIUM severity - bypassable with "yert"
 for (const { pattern, label } of mediumPatterns) {
   if (pattern.test(command)) {
+    if (hasValidBypassToken()) {
+      consumeBypassToken();
+      console.log(JSON.stringify({ decision: "allow" }));
+      process.exit(0);
+    }
     writeBlockedState('MEDIUM', label, command);
     console.log(JSON.stringify({
       decision: "block",
