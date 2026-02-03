@@ -2,8 +2,9 @@
 .zsh/99-local.zsh
 .gitconfig.local
 
-# Claude Code - machine-specific only
+# Claude Code - machine-specific and runtime
 .claude/settings.local.json
+.claude/state/
 
 # OS
 .DS_Store

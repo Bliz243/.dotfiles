@@ -45,17 +45,17 @@ if (isContainerCommand) {
 
 // HIGH severity - critical security risks
 const highPatterns = [
-  // File destruction
-  { pattern: /rm\s+(-[rf]{2,}|(-r\s+-f|-f\s+-r))/i, label: "recursive force delete" },
-  { pattern: /rm\s+-f/i, label: "force delete" },
+  // File destruction - catch all combinations of -r/-R/--recursive with -f/--force
+  { pattern: /rm\s+(?=.*(-r|-R|--recursive))(?=.*(-f|--force))/i, label: "recursive force delete" },
+  { pattern: /rm\s+(-f|--force)/i, label: "force delete" },
 
   // Permission disasters
   { pattern: /chmod\s+777/i, label: "world-writable permissions" },
   { pattern: /chmod\s+(-R|--recursive)/i, label: "recursive permission change" },
 
-  // Remote code execution
-  { pattern: /curl\s+.*\|\s*(ba)?sh/i, label: "curl pipe to shell" },
-  { pattern: /wget\s+.*\|\s*(ba)?sh/i, label: "wget pipe to shell" },
+  // Remote code execution - catch sh, bash, zsh, dash, ksh, fish, and interpreters
+  { pattern: /curl\s+.*\|\s*(\w*sh|python|perl|ruby|node)\b/i, label: "curl pipe to shell" },
+  { pattern: /wget\s+.*\|\s*(\w*sh|python|perl|ruby|node)\b/i, label: "wget pipe to shell" },
 
   // Disk destruction
   { pattern: /\bdd\s+if=/i, label: "raw disk operation" },
