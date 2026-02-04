@@ -149,9 +149,8 @@ alias wget='wget -c'
 # ─────────────────────────────────────────────
 # Safety
 # ─────────────────────────────────────────────
-alias rm='rm -i'
-alias mv='mv -i'
-alias cp='cp -i'
+# Note: Removed -i aliases (rm, mv, cp) because they hang in Claude Code
+# Claude Code has its own permission system + command-guard for dangerous operations
 
 # ─────────────────────────────────────────────
 # System Info
