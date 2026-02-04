@@ -64,19 +64,33 @@ Ask the user:
 
 Check if target files exist. If so, ask whether to skip or overwrite each.
 
-## Step 3: Copy Templates
+## Step 3: Copy Templates EXACTLY
+
+**CRITICAL: Read each template file and copy it VERBATIM. Do NOT improvise or rewrite. The templates are carefully designed based on Geoffrey Huntley's Ralph methodology.**
 
 Templates location: `~/.claude/skills/ralph-init/templates/`
 
 | Template | Destination | Action |
 |----------|-------------|--------|
-| `AGENTS.md` | `./AGENTS.md` | Replace placeholders |
-| `specs-README.md` | `./specs/README.md` | Copy as-is |
-| `example-spec.md` | `./specs/example-auth.md` | Optional - ask user |
-| `IMPLEMENTATION_PLAN.md` | `./IMPLEMENTATION_PLAN.md` | Copy as-is |
-| `PROMPT_plan.md` | `./PROMPT_plan.md` | Replace placeholders |
-| `PROMPT_build.md` | `./PROMPT_build.md` | Replace placeholders |
-| `loop.sh` | `./loop.sh` | Copy + chmod +x |
+| `AGENTS.md` | `./AGENTS.md` | Read file, copy exactly, replace only placeholders |
+| `specs-README.md` | `./specs/README.md` | Read file, copy exactly as-is |
+| `example-spec.md` | `./specs/example-auth.md` | Optional - read file, copy exactly |
+| `IMPLEMENTATION_PLAN.md` | `./IMPLEMENTATION_PLAN.md` | Read file, copy exactly as-is |
+| `PROMPT_plan.md` | `./PROMPT_plan.md` | Read file, copy exactly, replace only placeholders |
+| `PROMPT_build.md` | `./PROMPT_build.md` | Read file, copy exactly, replace only placeholders |
+| `loop.sh` | `./loop.sh` | Read file, copy exactly + chmod +x |
+
+**DO NOT:**
+- Rewrite prompts in your own words
+- Add extra sections
+- Remove numbered rules (99999, 999999, etc.)
+- Change subagent counts or model references
+- Improvise "better" versions
+
+**DO:**
+- Use the Read tool to read each template
+- Use the Write tool to copy content exactly
+- Only replace `{{PLACEHOLDER}}` values with user-provided info
 
 ## Step 4: Replace Placeholders
 
