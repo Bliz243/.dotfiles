@@ -199,7 +199,7 @@ function runGuard() {
         writeBlockedState(severity, label, command);
         console.log(JSON.stringify({
           decision: "block",
-          message: `⚠️ ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
+          message: `⚠️ ${label}\n\nCommand: ${command}\n\nSay "yert" and I'll retry.`
         }));
         process.exit(0);
       }
