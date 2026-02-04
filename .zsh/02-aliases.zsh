@@ -208,41 +208,6 @@ cheat() {
   curl -s "cheat.sh/$1"
 }
 
-# Initialize Claude Code in current project
-claude-init() {
-  local target="${1:-.}/.claude"
-
-  # Check if superpowers marketplace is installed
-  if [[ ! -d ~/.claude/plugins/marketplaces/superpowers-marketplace ]]; then
-    echo "Warning: superpowers not installed"
-    echo "The template uses superpowers:brainstorming and superpowers:debugging skills."
-    echo ""
-    echo "Install from within Claude Code:"
-    echo "  /plugin marketplace add obra/superpowers-marketplace"
-    echo "  /plugin install superpowers@superpowers-marketplace"
-    echo ""
-    read -p "Continue anyway? [y/N]: " -n 1 -r
-    echo ""
-    [[ ! $REPLY =~ ^[Yy]$ ]] && return 1
-  fi
-
-  if [[ -d "$target" ]]; then
-    echo "Warning: $target already exists"
-    read -p "Overwrite? [y/N]: " -n 1 -r
-    echo ""
-    [[ ! $REPLY =~ ^[Yy]$ ]] && return 1
-    rm -rf "$target"
-  fi
-
-  cp -r ~/.dotfiles/.claude-template "$target"
-  echo "Initialized .claude in ${1:-.}"
-  echo "  - agents/code-review.md"
-  echo "  - config/skill-rules.json"
-  echo "  - statusline.js"
-  echo ""
-  echo "Customize config/skill-rules.json for project-specific rules."
-}
-
 # ─────────────────────────────────────────────
 # Tmux Integration
 # ─────────────────────────────────────────────
