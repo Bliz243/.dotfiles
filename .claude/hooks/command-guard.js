@@ -198,8 +198,8 @@ function runGuard() {
         }
         writeBlockedState(severity, label, command);
         console.log(JSON.stringify({
-          decision: "ask",
-          message: `⚠️ ${label}\n\nCommand: ${command}\n\nProceed? (say "yert" to confirm)`
+          decision: "block",
+          message: `⚠️ ${label}\n\nCommand: ${command}\n\nSay "yert" to proceed.`
         }));
         process.exit(0);
       }
