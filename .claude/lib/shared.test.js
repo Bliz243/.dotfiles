@@ -15,8 +15,7 @@ const {
   STATE_DIR,
   getSessionKey,
   getStatePaths,
-  getTokenUsage,
-  getActiveWork
+  getTokenUsage
 } = require('./shared');
 
 let passed = 0;
@@ -110,12 +109,6 @@ test('Number() coercion handles strings correctly', () => {
   assert.strictEqual(toNum(null), 0);
   assert.strictEqual(toNum(undefined), 0);
   assert.strictEqual(toNum("invalid"), 0);
-});
-
-// getActiveWork
-test('getActiveWork returns correct structure for nonexistent dir', () => {
-  const result = getActiveWork('/nonexistent/project');
-  assert.deepStrictEqual(result, { designDoc: null, adHoc: false });
 });
 
 // Summary

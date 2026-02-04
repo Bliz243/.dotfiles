@@ -9,7 +9,7 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
 
-const { getStatePaths, getActiveWork } = require('./lib/shared');
+const { getStatePaths } = require('./lib/shared');
 
 // How long to show "Blocked" status after a command is blocked (matches bypass TTL)
 const BLOCKED_TTL_MS = 30000;
@@ -40,6 +40,10 @@ function formatContextBar(contextWindow) {
   // Use Claude's pre-calculated percentage (accounts for system prompts, caching, etc.)
   const pct = contextWindow?.used_percentage ?? 0;
   const pctInt = Math.min(Math.floor(pct), 100);
+  const total = contextWindow?.context_window_size || 200000;
+
+  // Calculate used tokens from percentage
+  const used = Math.floor(pct * total / 100);
 
   const filled = Math.min(Math.floor(pctInt / 10), 10);
   const empty = 10 - filled;
@@ -48,13 +52,8 @@ function formatContextBar(contextWindow) {
   if (pctInt >= 80) barColor = colors.red;
   else if (pctInt >= 50) barColor = colors.orange;
 
-  // Derive actual token usage from Claude's percentage (includes all overhead)
-  const total = contextWindow?.context_window_size || 200000;
-  const used = Math.floor(pct * total / 100);
-  const tokenStr = ` (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)`;
-
   return `${barColor}${'█'.repeat(filled)}${colors.gray}${'░'.repeat(empty)}${colors.reset} ` +
-         `${colors.lGray}${pct.toFixed(0)}%${tokenStr}${colors.reset}`;
+         `${colors.lGray}${pct.toFixed(0)}% (${Math.floor(used / 1000)}k/${Math.floor(total / 1000)}k)${colors.reset}`;
 }
 
 // ===== BLOCKED STATE =====
@@ -138,14 +137,6 @@ function main() {
     if (git.ahead > 0) gitStr += `${colors.orange} ↑${git.ahead}${colors.reset}`;
     if (git.behind > 0) gitStr += `${colors.orange} ↓${git.behind}${colors.reset}`;
     parts.push(gitStr);
-  }
-
-  // Active work (compact)
-  const activeWork = getActiveWork(cwd);
-  if (activeWork.designDoc) {
-    parts.push(`${colors.purple}${activeWork.designDoc}${colors.reset}`);
-  } else if (activeWork.adHoc) {
-    parts.push(`${colors.purple}ad-hoc${colors.reset}`);
   }
 
   // Single line output - Claude Code only uses first line

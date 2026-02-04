@@ -35,8 +35,7 @@ const {
   STATE_DIR,
   getSessionKey,
   getStatePaths,
-  getTokenUsage,
-  getActiveWork
+  getTokenUsage
 } = require('../lib/shared');
 
 // Skip in CI environments
@@ -260,15 +259,6 @@ const matched = processSkills(prompt, config);
 
 // Generate skill output (blocking -> suggestions -> reminders)
 context += generateSkillOutput(matched);
-
-// Session orientation
-const activeWork = getActiveWork(projectDir);
-if (activeWork.designDoc || activeWork.adHoc) {
-  context += 'ACTIVE WORK DETECTED:\n';
-  if (activeWork.designDoc) context += `   Design: docs/designs/${activeWork.designDoc}.md\n`;
-  if (activeWork.adHoc) context += '   Ad-hoc: docs/active_work.md\n';
-  context += '   -> Read to understand current state\n\n';
-}
 
 // Token monitoring
 const tokens = getTokenUsage(transcriptPath) || 0;

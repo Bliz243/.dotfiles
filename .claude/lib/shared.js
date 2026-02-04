@@ -71,46 +71,10 @@ function getTokenUsage(transcriptPath) {
   return null;
 }
 
-/**
- * Detect active work in project
- * @param {string} projectDir - Project root directory
- * @returns {object} - { designDoc: string|null, adHoc: boolean }
- */
-function getActiveWork(projectDir) {
-  const result = { designDoc: null, adHoc: false };
-
-  const designsDir = path.join(projectDir, 'docs/designs');
-  if (fs.existsSync(designsDir)) {
-    try {
-      const docs = fs.readdirSync(designsDir).filter(f => f.endsWith('.md'));
-      for (const doc of docs) {
-        const content = fs.readFileSync(path.join(designsDir, doc), 'utf8');
-        if (/Status:\s*(Active|In Progress|Exploring)/i.test(content)) {
-          result.designDoc = doc.replace('.md', '');
-          break;
-        }
-      }
-    } catch { /* ignore */ }
-  }
-
-  const awPath = path.join(projectDir, 'docs/active_work.md');
-  if (fs.existsSync(awPath)) {
-    try {
-      const content = fs.readFileSync(awPath, 'utf8');
-      // True if Current Focus section exists and has content (not just a link placeholder)
-      result.adHoc = content.includes('## Current Focus') &&
-                     !/## Current Focus\n\n?\[/.test(content);
-    } catch { /* ignore */ }
-  }
-
-  return result;
-}
-
 module.exports = {
   CONTEXT_LIMIT,
   STATE_DIR,
   getSessionKey,
   getStatePaths,
-  getTokenUsage,
-  getActiveWork
+  getTokenUsage
 };
