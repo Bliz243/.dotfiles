@@ -61,20 +61,13 @@ const homeDir = os.homedir();
 const { stateDir, bypassTokenPath } = getStatePaths(projectDir);
 
 // ===== BYPASS TOKEN HANDLING =====
-// When user says "yert", create bypass token for command-guard
-if (/^\s*yert\s*$/i.test(prompt)) {
+// When user starts message with "yert", create bypass token for command-guard
+// Matches: "yert", "yert just delete it", "yert let's continue"
+if (/^\s*yert\b/i.test(prompt)) {
   try {
     fs.mkdirSync(stateDir, { recursive: true });
     fs.writeFileSync(bypassTokenPath, String(Date.now()));
-
-    // Output confirmation that bypass is ready
-    console.log(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: 'UserPromptSubmit',
-        additionalContext: '[[ ultrathink ]]\n\nBypass token created. You may now retry the blocked command.\n'
-      }
-    }));
-    process.exit(0);
+    // Token created - continue processing the rest of the prompt
   } catch (e) {
     // Continue with normal flow if bypass creation fails
   }

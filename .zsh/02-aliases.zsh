@@ -101,6 +101,11 @@ alias dlog='docker logs -f'
 alias dprune='docker system prune -af'
 
 # ─────────────────────────────────────────────
+# Node/pnpm
+# ─────────────────────────────────────────────
+alias pn='pnpm'
+
+# ─────────────────────────────────────────────
 # Kubernetes (if available)
 # ─────────────────────────────────────────────
 if command -v kubectl &>/dev/null; then
