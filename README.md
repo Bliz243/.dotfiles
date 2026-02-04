@@ -25,6 +25,7 @@ The install script handles:
 - Installing tmux plugin manager (TPM)
 - Syncing Neovim plugins
 - Optional: Claude Code installation
+- Optional: Workmux installation
 - Optional: GitHub/SSH authentication setup
 
 ## Post-Install Setup
@@ -99,6 +100,35 @@ Install manually:
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+## Workmux
+
+[Workmux](https://github.com/raine/workmux) manages git worktrees + tmux windows for parallel AI agent development. The install script offers to install it.
+
+Install manually:
+```bash
+curl -fsSL https://raw.githubusercontent.com/raine/workmux/main/scripts/install.sh | bash
+```
+
+### Quick Start
+
+```bash
+wm add feature-name     # Create worktree + tmux window with Claude agent
+wm merge                # Merge branch and cleanup everything
+wm dashboard            # Monitor all running agents
+```
+
+### Project Configuration
+
+Copy the template to your project:
+```bash
+cp ~/.dotfiles/.workmux.yaml.example /path/to/project/.workmux.yaml
+```
+
+The template includes:
+- Two-pane layout (Claude agent + shell)
+- pnpm + Prisma post-create hooks
+- .env and .claude/ file copying for worktrees
 
 ## What's Included
 

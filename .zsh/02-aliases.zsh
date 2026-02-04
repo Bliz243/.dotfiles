@@ -63,6 +63,11 @@ alias e='$EDITOR'
 alias ccd='CLAUDE_GUARD=1 claude --dangerously-skip-permissions'
 
 # ─────────────────────────────────────────────
+# Workmux (git worktrees + tmux)
+# ─────────────────────────────────────────────
+alias wm='workmux'
+
+# ─────────────────────────────────────────────
 # Git Shortcuts
 # ─────────────────────────────────────────────
 alias g='git'

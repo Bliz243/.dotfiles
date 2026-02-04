@@ -399,6 +399,9 @@ EOF
   # Optional Claude Code installation
   setup_claude_code
 
+  # Optional workmux installation
+  setup_workmux
+
   # Optional GitHub/SSH setup
   setup_github
 }
@@ -516,6 +519,48 @@ setup_claude_code() {
     echo "  2. Add marketplace:    /plugin marketplace add obra/superpowers-marketplace"
     echo "  3. Install plugin:     /plugin install superpowers@superpowers-marketplace"
     echo ""
+  fi
+}
+
+# ─────────────────────────────────────────────
+# Workmux Installation (Optional)
+# ─────────────────────────────────────────────
+setup_workmux() {
+  # Check if already installed
+  if command -v workmux &>/dev/null; then
+    info "Workmux already installed"
+    return
+  fi
+
+  echo ""
+  echo -e "${BLUE}Would you like to install workmux?${NC}"
+  echo "Workmux manages git worktrees + tmux for parallel AI agent development."
+  echo ""
+  read -p "Install workmux? [y/N]: " -n 1 -r
+  echo ""
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    info "Skipping workmux. Install later: curl -fsSL https://raw.githubusercontent.com/raine/workmux/main/scripts/install.sh | bash"
+    return
+  fi
+
+  info "Installing workmux..."
+  curl -fsSL https://raw.githubusercontent.com/raine/workmux/main/scripts/install.sh | bash
+
+  if command -v workmux &>/dev/null; then
+    info "Workmux installed successfully"
+    echo ""
+    echo "  Quick start:"
+    echo "    wm add feature-name    # Create worktree + tmux window"
+    echo "    wm merge               # Merge and cleanup"
+    echo "    wm dashboard           # Monitor all agents"
+    echo ""
+    echo "  Copy template config to your project:"
+    echo "    cp ~/.dotfiles/.workmux.yaml.example /path/to/project/.workmux.yaml"
+    echo ""
+  else
+    warn "Workmux installation may have failed. Try manually:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/raine/workmux/main/scripts/install.sh | bash"
   fi
 }
 

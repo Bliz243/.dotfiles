@@ -1,0 +1,66 @@
+# workmux project configuration
+# Parallel AI agent development with git worktrees + tmux
+# Copy to project root as .workmux.yaml
+
+#-------------------------------------------------------------------------------
+# Git
+#-------------------------------------------------------------------------------
+
+main_branch: main
+merge_strategy: squash
+
+#-------------------------------------------------------------------------------
+# Naming & Paths
+#-------------------------------------------------------------------------------
+
+# Use Nerd Font git branch icon
+window_prefix: "\uf418 "
+
+#-------------------------------------------------------------------------------
+# Tmux
+#-------------------------------------------------------------------------------
+
+# Two-pane layout: Claude agent + shell
+panes:
+  - command: <agent>
+    focus: true
+  - split: horizontal
+
+#-------------------------------------------------------------------------------
+# Agent & AI
+#-------------------------------------------------------------------------------
+
+agent: claude
+
+#-------------------------------------------------------------------------------
+# Hooks
+#-------------------------------------------------------------------------------
+
+# Commands run after worktree creation
+post_create:
+  - pnpm install
+  - pnpm prisma generate
+
+#-------------------------------------------------------------------------------
+# Files
+#-------------------------------------------------------------------------------
+
+files:
+  # Copy environment files (each worktree needs its own)
+  copy:
+    - .env
+    - .env.local
+    # Claude Code configuration
+    - .claude/settings.json
+    - .claude/settings.local.json
+    - .claude/agents
+    - .claude/config
+    - .claude/hooks
+    - .claude/skills
+    - .claude/statusline.js
+
+  # NOTE: With pnpm, we don't need to symlink anything
+  # - node_modules: pnpm uses its own symlink structure, each worktree gets its own
+  # - .pnpm-store: pnpm uses a global store (~/.local/share/pnpm/store)
+  # Dependencies install fast via post_create hook
+  # NOTE: .claude/state/ is NOT copied - each worktree has its own agent state
