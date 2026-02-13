@@ -35,6 +35,15 @@ fi
 # adds smart matching for partial directory names
 if command -v zoxide &>/dev/null; then
   eval "$(zoxide init zsh --cmd cd)"
+  # Wrapper: fall back to builtin cd when zoxide internals aren't available
+  # (Claude Code's shell snapshots capture cd but not __zoxide_z)
+  cd() {
+    if (( $+functions[__zoxide_z] )); then
+      __zoxide_z "$@"
+    else
+      builtin cd "$@"
+    fi
+  }
 fi
 
 # fzf - load key bindings and completion

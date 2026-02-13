@@ -1,0 +1,18 @@
+# Codex CLI Configuration
+# Portable settings managed via dotfiles
+# Machine-specific settings (project trust, auth) stay in ~/.codex/config.toml
+
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+
+# Sandbox: workspace-write allows file edits in project, no network by default
+sandbox_mode = "workspace-write"
+
+# Web search
+web_search = "cached"
+
+# Features
+[features]
+shell_tool = true
+request_rule = true

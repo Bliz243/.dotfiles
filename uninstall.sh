@@ -87,11 +87,36 @@ unlink_claude_config() {
 }
 
 # ─────────────────────────────────────────────
+# Remove Codex config symlinks
+# ─────────────────────────────────────────────
+unlink_codex_config() {
+  info "Removing Codex config symlinks..."
+
+  CODEX_DIR="$HOME/.codex"
+  AGENTS_DIR="$HOME/.agents/skills"
+
+  # Remove AGENTS.md symlink
+  [[ -L "$CODEX_DIR/AGENTS.md" ]] && rm -f "$CODEX_DIR/AGENTS.md"
+
+  # Remove symlinked custom skills from ~/.agents/skills/
+  for skill in "$AGENTS_DIR/"*/; do
+    [[ -L "${skill%/}" ]] && rm -f "${skill%/}"
+  done
+
+  # Remove ~/.agents/skills if empty
+  rmdir "$AGENTS_DIR" 2>/dev/null || true
+  rmdir "$HOME/.agents" 2>/dev/null || true
+
+  info "Codex config symlinks removed"
+}
+
+# ─────────────────────────────────────────────
 # Optional: Remove installed components
 # ─────────────────────────────────────────────
 remove_components() {
-  # Always remove Claude config symlinks
+  # Always remove config symlinks
   unlink_claude_config
+  unlink_codex_config
 
   echo ""
   read -p "Also remove TPM and Neovim plugins? (y/N) " -n 1 -r

@@ -399,6 +399,9 @@ EOF
   # Optional Claude Code installation
   setup_claude_code
 
+  # Codex CLI configuration (symlinks for global config + skills)
+  setup_codex_config
+
   # Optional workmux installation
   setup_workmux
 
@@ -520,6 +523,76 @@ setup_claude_code() {
     echo "  3. Install plugin:     /plugin install superpowers@superpowers-marketplace"
     echo ""
   fi
+}
+
+# ─────────────────────────────────────────────
+# Codex Config Setup (Symlinks for global config + skills)
+# ─────────────────────────────────────────────
+setup_codex_config() {
+  info "Setting up Codex CLI configuration..."
+
+  CODEX_DIR="$HOME/.codex"
+  AGENTS_DIR="$HOME/.agents/skills"
+  DOTFILES_CODEX="$HOME/.dotfiles/.codex"
+
+  # Skip if dotfiles codex config doesn't exist
+  if [[ ! -d "$DOTFILES_CODEX" ]]; then
+    warn "No Codex config in dotfiles, skipping"
+    return
+  fi
+
+  # Create directories if needed
+  mkdir -p "$CODEX_DIR"
+  mkdir -p "$AGENTS_DIR"
+
+  # Helper to symlink with backup
+  link_codex_file() {
+    local src="$1"
+    local dest="$2"
+
+    if [[ -e "$dest" ]] && [[ ! -L "$dest" ]]; then
+      local backup="${dest}.backup-$(date +%Y%m%d-%H%M%S)"
+      mv "$dest" "$backup"
+      warn "Backed up: $dest → $backup"
+    fi
+
+    ln -sf "$src" "$dest"
+  }
+
+  # Symlink AGENTS.md (global instructions)
+  [[ -f "$DOTFILES_CODEX/AGENTS.md" ]] && link_codex_file "$DOTFILES_CODEX/AGENTS.md" "$CODEX_DIR/AGENTS.md"
+
+  # Symlink custom skills into ~/.agents/skills/
+  for skill in "$DOTFILES_CODEX/skills/"*/; do
+    [[ -d "$skill" ]] || continue
+    local skill_name=$(basename "$skill")
+    link_codex_file "$skill" "$AGENTS_DIR/$skill_name"
+  done
+
+  # Install superpowers if not already cloned
+  if [[ ! -d "$CODEX_DIR/superpowers" ]]; then
+    info "Cloning superpowers for Codex..."
+    if git clone https://github.com/obra/superpowers.git "$CODEX_DIR/superpowers" 2>/dev/null; then
+      info "Superpowers cloned"
+    else
+      warn "Failed to clone superpowers. Install manually: git clone https://github.com/obra/superpowers.git ~/.codex/superpowers"
+    fi
+  fi
+
+  # Symlink superpowers skills
+  if [[ -d "$CODEX_DIR/superpowers/skills" ]]; then
+    link_codex_file "$CODEX_DIR/superpowers/skills" "$AGENTS_DIR/superpowers"
+  fi
+
+  # Note about config.toml (not symlinked — contains machine-specific project trust)
+  if [[ ! -f "$CODEX_DIR/config.toml" ]]; then
+    info "No config.toml found. Copying template from dotfiles..."
+    cp "$DOTFILES_CODEX/config.toml" "$CODEX_DIR/config.toml"
+  else
+    info "Existing config.toml preserved. Reference config at: $DOTFILES_CODEX/config.toml"
+  fi
+
+  info "Codex CLI configuration linked"
 }
 
 # ─────────────────────────────────────────────

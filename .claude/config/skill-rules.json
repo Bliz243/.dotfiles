@@ -61,23 +61,62 @@
       }
     },
 
-    "ultra-frontend": {
+    "playwright-cli": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Browser automation via playwright-cli",
+      "promptTriggers": {
+        "patterns": [
+          "(test|check|verify|inspect|browse|open|navigate)\\s+(the\\s+)?(website|web\\s*page|page|site|app|url|ui|frontend|browser)",
+          "(screenshot|scrape|extract|fill\\s+form|form\\s+fill|click|interact)\\s+(with\\s+)?(the\\s+)?(website|web\\s*page|page|site|element|button|link)",
+          "(playwright|browser\\s+automation|web\\s+test|e2e\\s+test|end.to.end)",
+          "(check|test|verify)\\s+(how|what|if)\\s+(the\\s+)?(page|site|app|ui)\\s+(looks|works|renders|behaves|displays)"
+        ]
+      },
+      "activation": {
+        "icon": "*",
+        "skill": "playwright-cli",
+        "message": "Browser automation via playwright-cli"
+      }
+    },
+
+    "ui-design": {
       "type": "workflow",
       "enforcement": "suggest",
       "priority": "high",
-      "description": "Distinctive, production-grade frontend interfaces",
+      "description": "Design system consistency for app UI",
       "promptTriggers": {
         "patterns": [
-          "(build|create|design|implement|make)\\s+(a\\s+)?(web|frontend|ui|interface|component|page|landing|dashboard)",
-          "(style|beautify|redesign|improve)\\s+(the|this|a)?\\s*(ui|interface|component|page|design)",
-          "(html|css|react|vue|svelte)\\s+(component|page|layout)",
-          "(landing\\s+page|dashboard|form|card|modal|navbar|header|footer)"
+          "(build|create|add|implement|make)\\s+(a\\s+)?(page|component|form|table|card|modal|dialog|sheet|settings|dashboard|sidebar|nav)",
+          "(style|fix|update|change|modify)\\s+(the|this|a)?\\s*(page|component|form|table|card|layout|spacing|colors?|theme)",
+          "(shadcn|tailwind|design\\s+system|consistent|styling|ui\\s+pattern)",
+          "(button|badge|input|select|dropdown|tab|toast|skeleton|empty\\s+state)"
+        ]
+      },
+      "activation": {
+        "icon": "*",
+        "skill": "ui-design",
+        "message": "Design system consistency"
+      }
+    },
+
+    "ultra-frontend": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Distinctive, production-grade creative interfaces",
+      "promptTriggers": {
+        "patterns": [
+          "(landing\\s+page|marketing|showcase|portfolio|creative|bold|striking)",
+          "(style|beautify|redesign)\\s+(the|this|a)?\\s*(website|landing|marketing)",
+          "(html|css)\\s+(from\\s+scratch|standalone|static)"
         ]
       },
       "activation": {
         "icon": "*",
         "skill": "ultra-frontend",
-        "message": "Distinctive UI design"
+        "message": "Distinctive UI design (creative/marketing)"
       }
     }
   }

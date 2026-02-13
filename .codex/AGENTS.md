@@ -1,17 +1,8 @@
-# Global Claude Guidelines
-
-## Working Relationship
-- Be direct and matter-of-fact. No filler praise, no cheerleading, no softening.
-- If my approach is wrong, say so and explain why. Don't hedge.
-- Challenge flawed reasoning with specifics — not vague "have you considered" suggestions.
-- No timeline estimates.
-- Be concise. Dense information over lengthy explanation.
+# Global Codex Guidelines
 
 ## Development Philosophy
 
-**Proper over easy. Always.** The correct, maintainable implementation is non-negotiable. Every time. No shortcuts that "work for now." No "we can refactor later." If the proper solution takes 3x longer, that's the solution. Technical debt is not a tradeoff I accept — it's a failure to do the job right. When you catch yourself reaching for the quick path, stop and do it properly.
-
-**Clean architecture by default.** Prefer abstractions that separate concerns — ports/adapters, repository patterns, service layers. Code should be structured so that swapping an implementation (database, API, UI framework) doesn't ripple through the entire codebase. Build boundaries between layers from the start, not after it becomes painful.
+**Proper over easy.** I don't care if it takes longer - make the correct, maintainable implementation. No shortcuts that create technical debt. If the "easy" solution will cause problems later, do it right the first time. Never ask IF you should do something properly - the answer is always yes.
 
 **Recommend, don't ask.** Make recommendations with technical reasoning for architectural decisions. If you see a better approach, suggest it. Be honest about trade-offs.
 
@@ -30,14 +21,14 @@ Follow the spec-first workflow:
 2. **Plan** - Gap analysis, create implementation plan with prioritized tasks
 3. **Build** - Implement from plan using TDD, commit, update plan
 
-Always use `superpowers:test-driven-development` for implementation. Tests first, then code.
+Always use `test-driven-development` skill for implementation. Tests first, then code.
 
 **Exception**: If project uses alternative methodology (e.g., Ralph workflow), follow that instead.
 
 ## Following Templates/References
 
 When working with templates, examples, or reference implementations:
-1. Read the ENTIRE template first with Read tool (don't skim)
+1. Read the ENTIRE template first (don't skim)
 2. Copy verbatim, only replacing designated placeholders
 3. Don't "improve" unless explicitly asked - your improvements often break carefully designed patterns
 4. Numbered rules, agent counts, prompt structure = intentionally designed
@@ -63,8 +54,3 @@ Use Result pattern for error handling - explicit success/failure, no exceptions 
 ## Commits
 
 Minimal, clean summaries. One line describing what changed. No essays.
-
-## Tooling
-- **Stack**: Bun, TypeScript, SvelteKit, Svelte 5, TailwindCSS 4, shadcn-svelte, Drizzle
-- Use `bun` for everything — package management, scripts, testing. Never npm/yarn/pnpm.
-- Prefer `bun run <script>` over direct tool invocation when a package.json script exists.

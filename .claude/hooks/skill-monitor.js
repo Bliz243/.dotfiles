@@ -20,7 +20,7 @@ process.on('uncaughtException', () => {
   console.log(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'UserPromptSubmit',
-      additionalContext: '[[ ultrathink ]]\n\n'
+      additionalContext: ''
     }
   }));
   process.exit(0);
@@ -244,8 +244,7 @@ function setWarningState(state) {
 }
 
 // ===== MAIN =====
-// Start with ultrathink
-let context = '[[ ultrathink ]]\n\n';
+let context = '';
 
 // Process skills
 const matched = processSkills(prompt, config);

@@ -6,6 +6,12 @@
 .claude/settings.local.json
 .claude/state/
 
+# Codex CLI - machine-specific (config.toml has project trust paths)
+# .codex/config.toml is a template; actual config lives in ~/.codex/
+
+# Playwright CLI session artifacts
+.playwright-cli/
+
 # OS
 .DS_Store
 
