@@ -30,21 +30,7 @@ if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
   alias fd='fdfind'
 fi
 
-# zoxide (smarter cd)
-# Replaces cd with zoxide - works normally for explicit paths,
-# adds smart matching for partial directory names
-if command -v zoxide &>/dev/null; then
-  eval "$(zoxide init zsh --cmd cd)"
-  # Wrapper: fall back to builtin cd when zoxide internals aren't available
-  # (Claude Code's shell snapshots capture cd but not __zoxide_z)
-  cd() {
-    if (( $+functions[__zoxide_z] )); then
-      __zoxide_z "$@"
-    else
-      builtin cd "$@"
-    fi
-  }
-fi
+# zoxide (smarter cd) is initialized at the END of ~/.zshrc (ordering matters for _ZO_DOCTOR)
 
 # fzf - load key bindings and completion
 if command -v fzf &>/dev/null; then

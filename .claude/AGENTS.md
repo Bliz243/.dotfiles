@@ -1,7 +1,7 @@
 # Global Agent Guidelines
 
 Canonical, tool-agnostic instructions shared by Claude Code and Codex. Tool-specific
-deltas live in the respective shim file (`.claude/CLAUDE.md`, `.codex/AGENTS.md`).
+deltas live in the Claude shim file (`.claude/CLAUDE.md`); Codex reads this file directly.
 
 ## Configuration Source Of Truth
 - Global agent configuration is managed from `~/.dotfiles/` — `.claude/` for Claude Code, `.codex/` for Codex.

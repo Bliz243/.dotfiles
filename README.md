@@ -240,23 +240,13 @@ Leader key: `Space`
 
 ## Language Support (LSP)
 
-Out of the box, Neovim supports:
+Neovim runs [LazyVim](https://www.lazyvim.org). Language support (LSP servers, Treesitter
+parsers, and formatters) comes from LazyVim **extras**, enabled in
+`~/.config/nvim/lua/config/lazy.lua`: TypeScript, Python, Go, Docker, YAML, Terraform,
+Tailwind, JSON.
 
-| Language | Server |
-|----------|--------|
-| Lua | lua_ls |
-| TypeScript/JavaScript | ts_ls |
-| Tailwind CSS | tailwindcss |
-| HTML | html |
-| CSS | cssls |
-| Python | pyright |
-| Bash | bashls |
-| YAML | yamlls |
-| Docker | dockerls |
-| Terraform | terraformls |
-| Go | gopls |
-
-Add more by editing `~/.config/nvim/lua/config/lsp.lua`.
+Add or remove languages with `:LazyExtras` inside Neovim, or by editing the `extras` imports
+in `lua/config/lazy.lua`. Mason installs the servers automatically on first launch.
 
 ## Local Overrides
 

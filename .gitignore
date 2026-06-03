@@ -17,10 +17,4 @@
 # Playwright CLI session artifacts
 .playwright-cli/
 
-# OS
-.DS_Store
-
-# Editor
-*.swp
-*.swo
-*~
+# OS/editor cruft (.DS_Store, *.swp, *~, ...) is covered by .gitignore_global

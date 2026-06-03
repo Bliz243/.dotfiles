@@ -29,7 +29,7 @@ export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # pnpm
-export PNPM_HOME="/home/jacob/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -37,11 +37,26 @@ esac
 # pnpm end
 
 # bun completions
-[ -s "/home/jacob/.bun/_bun" ] && source "/home/jacob/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # opencode
-export PATH=/home/jacob/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
+
+# zoxide (smarter cd) — initialized LAST so its shell hooks stay after the tmux
+# precmd/preexec hooks and PATH setup (avoids the _ZO_DOCTOR ordering warning).
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init zsh --cmd cd)"
+  # Wrapper: fall back to builtin cd when zoxide internals aren't available
+  # (Claude Code's shell snapshots capture cd but not __zoxide_z)
+  cd() {
+    if (( $+functions[__zoxide_z] )); then
+      __zoxide_z "$@"
+    else
+      builtin cd "$@"
+    fi
+  }
+fi
