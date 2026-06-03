@@ -175,5 +175,9 @@
 	# Include local git config (for machine-specific settings)
 	path = ~/.gitconfig.local
 [credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	# Use whichever GitHub account `gh` is logged into on THIS machine.
+	# `!gh` is resolved from PATH (portable) — not an absolute path, so it
+	# works regardless of where gh is installed. Do not run `gh auth setup-git`,
+	# which would overwrite this with a machine-specific absolute path.
+	helper =
+	helper = !gh auth git-credential

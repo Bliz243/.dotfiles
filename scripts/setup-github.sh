@@ -178,8 +178,9 @@ setup_gh_auth() {
     gh auth status 2>&1 | grep -E "Logged in|Token" | head -2 | sed 's/^/  /'
     echo ""
 
-    # Ensure git is configured to use gh
-    gh auth setup-git 2>/dev/null || true
+    # NOTE: deliberately NOT running `gh auth setup-git` — the tracked .gitconfig
+    # already wires gh as the github.com credential helper (portably, via PATH).
+    # setup-git would rewrite that symlinked file with a machine-specific abs path.
 
     # Still need to check if SSH key is uploaded (handled in next step)
     return 0
@@ -209,8 +210,8 @@ setup_gh_auth() {
   # gh will find our SSH key and offer to upload it
   gh auth login -h github.com -p ssh
 
-  # Configure git to use gh for HTTPS (fallback)
-  gh auth setup-git
+  # NOTE: no `gh auth setup-git` — the tracked .gitconfig already wires gh as the
+  # HTTPS credential helper portably; setup-git would clobber it with an abs path.
 
   info "GitHub authentication complete"
   echo ""
