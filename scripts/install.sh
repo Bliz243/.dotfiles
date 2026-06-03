@@ -156,8 +156,13 @@ install_linux() {
     zsh git curl stow \
     fzf ripgrep fd-find \
     build-essential \
-    libevent-dev ncurses-dev bison \
-    chromium-browser
+    libevent-dev ncurses-dev bison
+
+  # chromium for playwright-cli browser automation — optional, and the package name/availability
+  # varies across Ubuntu releases (snap stub on newer ones), so never let it abort the install.
+  sudo apt install -y chromium-browser 2>/dev/null \
+    || sudo apt install -y chromium 2>/dev/null \
+    || warn "chromium not installed (optional; only needed for playwright-cli)"
 
   # bat (called batcat on Ubuntu, create symlink)
   if ! command -v bat &>/dev/null; then
