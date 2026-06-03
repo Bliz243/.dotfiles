@@ -18,7 +18,9 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Load plugins
-require("lazy").setup("plugins")
+require("lazy").setup("plugins", {
+  rocks = { enabled = false },
+})
 
 -- ─────────────────────────────────────────────
 -- Options
@@ -91,3 +93,10 @@ map("n", "<C-d>", "<C-d>zz")
 map("n", "<C-u>", "<C-u>zz")
 map("n", "n", "nzzzv")
 map("n", "N", "Nzzzv")
+
+-- Quickfix navigation
+map("n", "[q", ":cprev<CR>zz", { desc = "Prev quickfix" })
+map("n", "]q", ":cnext<CR>zz", { desc = "Next quickfix" })
+map("n", "<leader>xq", ":copen<CR>",  { desc = "Open quickfix" })
+map("n", "<leader>xc", ":cclose<CR>", { desc = "Close quickfix" })
+map("n", "<leader>xd", vim.diagnostic.setqflist, { desc = "Diagnostics → quickfix" })

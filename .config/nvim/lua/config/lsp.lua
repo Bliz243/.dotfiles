@@ -19,7 +19,6 @@ require("mason-lspconfig").setup({
     "yamlls",       -- YAML
     "dockerls",     -- Docker
     "terraformls",  -- Terraform
-    "gopls",        -- Go
   },
   handlers = {
     -- Default handler for all servers
