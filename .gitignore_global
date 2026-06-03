@@ -52,13 +52,7 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 .history/
 
-# JetBrains IDEs
-.idea/
-*.iml
-*.iws
-*.ipr
-
-# Vim
+# Vim / Neovim
 [._]*.s[a-v][a-z]
 [._]*.sw[a-p]
 [._]s[a-rt-v][a-z]
@@ -68,18 +62,6 @@ Session.vim
 Sessionx.vim
 .netrwhist
 [._]*.un~
-
-# Emacs
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
-# Sublime Text
-*.sublime-workspace
 
 # ============================================================================
 # Universal Temporary Files
@@ -109,27 +91,11 @@ tramp
 !.env.test
 
 # ============================================================================
-# Node - Only truly universal patterns
+# Ecosystem safety nets (project .gitignore should own the rest)
 # ============================================================================
 
 node_modules/
-.pnp.*
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-
-# ============================================================================
-# Python - Only truly universal patterns
-# ============================================================================
-
 __pycache__/
 *.py[cod]
-*$py.class
-*.egg-info/
-.eggs/
-*.egg
 .venv/
 venv/
-.pytest_cache/
-.mypy_cache/
