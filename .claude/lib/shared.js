@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const os = require('os');
 
 // Shared constants
-const CONTEXT_LIMIT = 160000;
+const CONTEXT_LIMIT = 1000000;
 const STATE_DIR = path.join(os.homedir(), '.claude', 'state');
 
 /**

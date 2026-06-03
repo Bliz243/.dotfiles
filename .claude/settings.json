@@ -2,6 +2,7 @@
   "cleanupPeriodDays": 15,
   "env": {
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "includeCoAuthoredBy": false,
@@ -49,9 +50,10 @@
     "superpowers@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true
+    "feature-dev@claude-plugins-official": true
   },
+  "effortLevel": "xhigh",
   "autoUpdatesChannel": "latest",
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized"
 }

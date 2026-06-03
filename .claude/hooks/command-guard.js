@@ -56,8 +56,8 @@ const highPatterns = [
 
 // MEDIUM severity - potentially dangerous but bypassable
 const mediumPatterns = [
-  // Force delete (non-recursive)
-  { pattern: /rm\s+.*(-f|--force)/i, label: "force delete" },
+  // Force delete (non-recursive) — match -f as a flag (after space), not inside filenames
+  { pattern: /rm\s+.*\s(-f|--force)\b/i, label: "force delete" },
 
   // Git dangers
   { pattern: /git\s+reset\s+--hard/i, label: "hard reset" },
@@ -78,8 +78,8 @@ const mediumPatterns = [
   { pattern: /(docker|podman|nerdctl)\s+run\s+.*--cap-add[=\s]+(SYS_ADMIN|ALL)/i, label: "dangerous capabilities" },
   { pattern: /(docker|podman|nerdctl)\s+run\s+.*--security-opt[=\s]+(seccomp[=:]unconfined|apparmor[=:]unconfined)/i, label: "disabled security" },
 
-  // Code injection
-  { pattern: /\beval\s+/i, label: "eval execution" },
+  // Code injection (exclude playwright-cli eval which is safe browser automation)
+  { pattern: /(?<!playwright-cli\s)\beval\s+/i, label: "eval execution" },
 
   // Sudo with dangerous commands
   { pattern: /sudo\s+rm/i, label: "sudo rm" },
@@ -97,17 +97,40 @@ if (require.main === module) {
   runGuard();
 }
 
+// PreToolUse hook output helpers — Claude Code validates the schema strictly.
+// Legacy `{decision: "allow"}` is invalid; "allow" was never accepted in the
+// old decision field (only "approve"|"block"). Use the new hookSpecificOutput
+// shape with permissionDecision = "allow"|"deny"|"ask".
+function allowOutput() {
+  return JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow'
+    }
+  });
+}
+
+function denyOutput(reason) {
+  return JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason
+    }
+  });
+}
+
 function runGuard() {
   // Global error handler - fail open to avoid blocking user
   process.on('uncaughtException', () => {
-    console.log(JSON.stringify({ decision: "allow" }));
+    console.log(allowOutput());
     process.exit(0);
   });
 
   // Only run guard when CLAUDE_GUARD=1 (set by ccd alias for --dangerously-skip-permissions)
   // Skip on remote machines (disposable VPS)
   if (process.env.CLAUDE_GUARD !== '1' || process.env.MACHINE_TYPE === 'remote') {
-    console.log(JSON.stringify({ decision: "allow" }));
+    console.log(allowOutput());
     process.exit(0);
   }
 
@@ -115,7 +138,7 @@ function runGuard() {
   try {
     input = JSON.parse(fs.readFileSync(0, 'utf8'));
   } catch (e) {
-    console.log(JSON.stringify({ decision: "allow" }));
+    console.log(allowOutput());
     process.exit(0);
   }
 
@@ -123,7 +146,7 @@ function runGuard() {
   const toolInput = input.tool_input || {};
 
   if (tool !== 'Bash') {
-    console.log(JSON.stringify({ decision: "allow" }));
+    console.log(allowOutput());
     process.exit(0);
   }
 
@@ -182,7 +205,7 @@ function runGuard() {
   const isContainerCommand = containerCmdMatch && !hasEscapeVector;
 
   if (isContainerCommand) {
-    console.log(JSON.stringify({ decision: "allow" }));
+    console.log(allowOutput());
     process.exit(0);
   }
 
@@ -193,14 +216,11 @@ function runGuard() {
     for (const { pattern, label } of patterns) {
       if (pattern.test(command)) {
         if (tryConsumeBypassToken()) {
-          console.log(JSON.stringify({ decision: "allow" }));
+          console.log(allowOutput());
           process.exit(0);
         }
         writeBlockedState(severity, label, command);
-        console.log(JSON.stringify({
-          decision: "block",
-          message: `⚠️ ${label}\n\nCommand: ${command}\n\nSay "yert" and I'll retry.`
-        }));
+        console.log(denyOutput(`⚠️ ${label}\n\nCommand: ${command}\n\nSay "yert" and I'll retry.`));
         process.exit(0);
       }
     }
@@ -211,5 +231,5 @@ function runGuard() {
   checkPatterns(mediumPatterns, 'MEDIUM');
 
   // Allow everything else
-  console.log(JSON.stringify({ decision: "allow" }));
+  console.log(allowOutput());
 }

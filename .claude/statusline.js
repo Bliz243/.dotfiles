@@ -82,7 +82,9 @@ function getGitInfo(dir) {
     const output = execSync('git status --porcelain=v2 -b', {
       cwd: dir,
       encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' },
+      timeout: 1500
     });
 
     for (const line of output.split('\n')) {
@@ -91,7 +93,9 @@ function getGitInfo(dir) {
         if (result.branch === '(detached)') {
           try {
             result.branch = '@' + execSync('git rev-parse --short HEAD', {
-              cwd: dir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
+              cwd: dir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+              env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' },
+              timeout: 1000
             }).trim();
           } catch { result.branch = '@detached'; }
         }

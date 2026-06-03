@@ -219,31 +219,10 @@ function generateSkillOutput(matched) {
   return output;
 }
 
-// ===== TOKEN MONITORING =====
-
-function getWarningStatePath() {
-  const sessionKey = getSessionKey(projectDir);
-  return path.join(STATE_DIR, `session-warnings-${sessionKey}.json`);
-}
-
-function getWarningState() {
-  try {
-    return JSON.parse(fs.readFileSync(getWarningStatePath(), 'utf-8'));
-  } catch (e) {
-    return { warned_70: false, warned_80: false, warned_90: false, session_id: null };
-  }
-}
-
-function setWarningState(state) {
-  try {
-    if (!fs.existsSync(STATE_DIR)) {
-      fs.mkdirSync(STATE_DIR, { recursive: true });
-    }
-    fs.writeFileSync(getWarningStatePath(), JSON.stringify(state, null, 2));
-  } catch (e) { /* ignore */ }
-}
-
 // ===== MAIN =====
+// Token monitoring removed — statusline already shows accurate context % from Claude Code's data.
+// The hook's manual transcript estimation was unreliable (wrong window size, double-counted cache tokens).
+
 let context = '';
 
 // Process skills
@@ -251,45 +230,6 @@ const matched = processSkills(prompt, config);
 
 // Generate skill output (blocking -> suggestions -> reminders)
 context += generateSkillOutput(matched);
-
-// Token monitoring
-const tokens = getTokenUsage(transcriptPath) || 0;
-const pct = tokens > 0 ? (tokens / CONTEXT_LIMIT) * 100 : 0;
-
-const sessionId = transcriptPath ? path.basename(transcriptPath, '.jsonl') : null;
-let warningState = getWarningState();
-if (sessionId && warningState.session_id !== sessionId) {
-  warningState = { warned_70: false, warned_80: false, warned_90: false, session_id: sessionId };
-  setWarningState(warningState);
-}
-
-// Tiered warnings
-let warningsToShow = [];
-
-if (pct >= 70 && !warningState.warned_70) {
-  warningsToShow.push({ level: 70, label: '[70% PREP]', message: 'Good checkpoint to save progress.' });
-  warningState.warned_70 = true;
-}
-
-if (pct >= 80 && !warningState.warned_80) {
-  warningsToShow.push({ level: 80, label: '[80% HIGH]', message: 'Context getting full. Consider /compact soon.' });
-  warningState.warned_80 = true;
-}
-
-if (pct >= 90 && !warningState.warned_90) {
-  warningsToShow.push({ level: 90, label: '[90% CRITICAL]', message: 'Context nearly full! Run /compact now.' });
-  warningState.warned_90 = true;
-}
-
-if (warningsToShow.length > 0) {
-  const highest = warningsToShow[warningsToShow.length - 1];
-  context += `${highest.label} ${highest.message}\n`;
-  if (warningsToShow.length > 1) {
-    context += `   (Jumped from <${warningsToShow[0].level}% to ${Math.floor(pct)}%)\n`;
-  }
-  context += '\n';
-  setWarningState(warningState);
-}
 
 // Output the hook response
 console.log(JSON.stringify({
