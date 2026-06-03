@@ -46,7 +46,7 @@ RUN ARCH=$(uname -m) && \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
-    curl -LO "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-${NVIM_ARCH}.tar.gz" && \
+    curl -LO "https://github.com/neovim/neovim/releases/download/stable/nvim-${NVIM_ARCH}.tar.gz" && \
     tar -xzf "nvim-${NVIM_ARCH}.tar.gz" -C /opt/ && \
     ln -s "/opt/nvim-${NVIM_ARCH}/bin/nvim" /usr/local/bin/nvim && \
     rm "nvim-${NVIM_ARCH}.tar.gz"

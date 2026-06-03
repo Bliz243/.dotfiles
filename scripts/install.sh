@@ -262,8 +262,7 @@ install_neovim_linux() {
     warn "Neovim ${NVIM_VERSION:-unknown} found, but $NVIM_REQUIRED+ required. Upgrading..."
   fi
 
-  info "Installing Neovim..."
-  NVIM_VERSION="0.12.2"
+  info "Installing latest stable Neovim..."
 
   # Detect architecture
   local ARCH
@@ -273,12 +272,13 @@ install_neovim_linux() {
     *) warn "Unsupported architecture $(uname -m) for Neovim binary"; return ;;
   esac
 
-  # Download and install
+  # Download and install — the rolling "stable" release always points at the latest
+  # stable Neovim (currently 0.12.x), so no manual version bumps are needed.
   local tmpdir; tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' RETURN
   (
     cd "$tmpdir"
-    curl -LO "https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-${ARCH}.tar.gz"
+    curl -LO "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-${ARCH}.tar.gz"
     sudo rm -rf "/opt/nvim-linux-${ARCH}"
     sudo tar -xzf "nvim-linux-${ARCH}.tar.gz" -C /opt/
     sudo ln -sf "/opt/nvim-linux-${ARCH}/bin/nvim" /usr/local/bin/nvim
