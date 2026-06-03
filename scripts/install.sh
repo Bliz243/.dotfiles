@@ -5,9 +5,9 @@ set -euo pipefail
 # Dotfiles Installation Script
 # ─────────────────────────────────────────────
 # Usage:
-#   ./install.sh           # Interactive - asks local or remote
-#   ./install.sh --local   # Local machine (WSL/Desktop) - Ctrl+A prefix
-#   ./install.sh --remote  # Remote server (VPS) - Ctrl+B prefix
+#   ./scripts/install.sh           # Interactive - asks local or remote
+#   ./scripts/install.sh --local   # Local machine (WSL/Desktop) - Ctrl+A prefix
+#   ./scripts/install.sh --remote  # Remote server (VPS) - Ctrl+B prefix
 # ─────────────────────────────────────────────
 
 # Colors for output
@@ -38,7 +38,7 @@ parse_args() {
         shift
         ;;
       --help|-h)
-        echo "Usage: ./install.sh [OPTIONS]"
+        echo "Usage: ./scripts/install.sh [OPTIONS]"
         echo ""
         echo "Options:"
         echo "  --local     Configure for local machine (WSL/Desktop)"
@@ -318,7 +318,7 @@ install_gh_linux() {
 stow_dotfiles() {
   info "Stowing dotfiles..."
 
-  DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+  DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
   cd "$DOTFILES_DIR"
 
   # Backup suffix with timestamp
@@ -659,7 +659,7 @@ setup_github() {
   echo ""
 
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    info "Skipping. Run later with: ~/.dotfiles/setup-github.sh"
+    info "Skipping. Run later with: ~/.dotfiles/scripts/setup-github.sh"
     return
   fi
 

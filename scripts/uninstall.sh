@@ -41,7 +41,7 @@ confirm() {
 unstow_dotfiles() {
   info "Removing dotfile symlinks..."
 
-  DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+  DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
   cd "$DOTFILES_DIR"
 
   if ! stow -D . --target="$HOME"; then

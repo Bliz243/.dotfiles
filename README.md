@@ -9,13 +9,13 @@ git clone https://github.com/Bliz243/.dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 
 # For local machine (WSL/Desktop) - uses Ctrl+A
-./install.sh --local
+./scripts/install.sh --local
 
 # For remote server (VPS) - uses Ctrl+B
-./install.sh --remote
+./scripts/install.sh --remote
 
 # Or run without flags to be asked interactively
-./install.sh
+./scripts/install.sh
 ```
 
 The install script handles:
@@ -89,7 +89,7 @@ Remote machine detected
 If you skip during install, run the standalone script anytime:
 
 ```bash
-~/.dotfiles/setup-github.sh
+~/.dotfiles/scripts/setup-github.sh
 ```
 
 ## Claude Code
@@ -158,9 +158,10 @@ This way:
 
 ```
 .dotfiles/
-├── install.sh              # Installation script
-├── uninstall.sh            # Uninstall script
-├── setup-github.sh         # Standalone GitHub/SSH setup
+├── scripts/                # Setup scripts
+│   ├── install.sh          # Installation script
+│   ├── uninstall.sh        # Uninstall script
+│   └── setup-github.sh     # Standalone GitHub/SSH setup
 ├── .zshrc                  # Shell config (sources .zsh/*.zsh)
 ├── .zshrc.local.example    # Template for machine-specific config
 ├── .zsh/
@@ -168,7 +169,7 @@ This way:
 │   └── 02-aliases.zsh      # Aliases and functions
 ├── .tmux.conf              # Tmux config (configurable prefix, Catppuccin)
 ├── .config/
-│   ├── nvim/               # Neovim (lazy.nvim, LSP, etc.)
+│   ├── nvim/               # Neovim (LazyVim)
 │   ├── alacritty/          # Terminal emulator config
 │   └── starship.toml       # Starship prompt (used outside tmux)
 ├── .gitconfig              # Git configuration
@@ -294,7 +295,7 @@ stow . --restow
 
 ```bash
 cd ~/.dotfiles
-./uninstall.sh
+./scripts/uninstall.sh
 ```
 
 This removes symlinks and optionally cleans up plugins.

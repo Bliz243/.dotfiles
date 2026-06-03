@@ -1,9 +1,7 @@
 # Files and directories to ignore when stowing
 
 # Installation and documentation
-install.sh
-uninstall.sh
-setup-github.sh
+scripts
 README.md
 LICENSE
 \.workmux\.yaml\.example

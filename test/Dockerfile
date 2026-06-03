@@ -64,7 +64,7 @@ COPY --chown=testuser:testuser . /home/testuser/.dotfiles/
 
 # Run stow (excluding test directory)
 WORKDIR /home/testuser/.dotfiles
-RUN stow . --target=/home/testuser --ignore=test --ignore=docs --ignore=install.sh --ignore=README.md --ignore=LICENSE
+RUN stow . --target=/home/testuser --ignore=test --ignore=docs --ignore=scripts --ignore=README.md --ignore=LICENSE
 
 # Install tmux plugin manager
 RUN git clone https://github.com/tmux-plugins/tpm /home/testuser/.tmux/plugins/tpm
