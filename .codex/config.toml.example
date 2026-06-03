@@ -1,0 +1,41 @@
+# Codex CLI Configuration — template.
+# scripts/install.sh copies this to ~/.codex/config.toml on first install (never overwrites).
+# Edit ~/.codex/config.toml for machine-specific project trust paths and MCP servers.
+
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+
+# Sandbox: workspace-write allows file edits in project, no network by default.
+sandbox_mode = "workspace-write"
+
+# Web search
+web_search = "cached"
+service_tier = "fast"
+
+[features]
+shell_tool = true
+request_rule = true
+goals = true
+rmcp_client = true
+
+[notice]
+hide_rate_limit_model_nudge = true
+
+[plugins."github@openai-curated"]
+enabled = true
+
+# ─────────────────────────────────────────────
+# Machine-specific (uncomment and edit per machine)
+# ─────────────────────────────────────────────
+
+# Trusted project directories (absolute paths):
+# [projects."/home/you/some-project"]
+# trust_level = "trusted"
+
+# MCP servers:
+# [mcp_servers.example]
+# url = "http://127.0.0.1:8080/mcp"
+#
+# [mcp_servers.example.tools.some_tool]
+# approval_mode = "approve"

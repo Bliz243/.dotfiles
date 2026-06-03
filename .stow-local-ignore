@@ -9,9 +9,6 @@ LICENSE
 # Test environment
 test
 
-# Documentation
-docs
-
 # Git files (stow handles these specially anyway)
 \.git
 \.gitignore

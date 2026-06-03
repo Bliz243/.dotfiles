@@ -37,7 +37,7 @@ RUN wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc |
 # Install zoxide
 RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 
-# Install Neovim 0.11+ (architecture-aware)
+# Install Neovim (architecture-aware; LazyVim requires >= 0.11.2)
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
         NVIM_ARCH="linux-x86_64"; \
@@ -46,7 +46,7 @@ RUN ARCH=$(uname -m) && \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
-    curl -LO "https://github.com/neovim/neovim/releases/download/v0.11.0/nvim-${NVIM_ARCH}.tar.gz" && \
+    curl -LO "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-${NVIM_ARCH}.tar.gz" && \
     tar -xzf "nvim-${NVIM_ARCH}.tar.gz" -C /opt/ && \
     ln -s "/opt/nvim-${NVIM_ARCH}/bin/nvim" /usr/local/bin/nvim && \
     rm "nvim-${NVIM_ARCH}.tar.gz"
@@ -64,7 +64,7 @@ COPY --chown=testuser:testuser . /home/testuser/.dotfiles/
 
 # Run stow (excluding test directory)
 WORKDIR /home/testuser/.dotfiles
-RUN stow . --target=/home/testuser --ignore=test --ignore=docs --ignore=scripts --ignore=README.md --ignore=LICENSE
+RUN stow . --target=/home/testuser --ignore=test --ignore=scripts --ignore=README.md --ignore=LICENSE
 
 # Install tmux plugin manager
 RUN git clone https://github.com/tmux-plugins/tpm /home/testuser/.tmux/plugins/tpm

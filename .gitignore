@@ -6,8 +6,9 @@
 .claude/settings.local.json
 .claude/state/
 
-# Codex CLI - machine-specific (config.toml has project trust paths)
-# .codex/config.toml is a template; actual config lives in ~/.codex/
+# Codex CLI - machine-specific (config.toml has project trust paths + MCP IPs)
+# Tracked template is .codex/config.toml.example; real config lives in ~/.codex/
+.codex/config.toml
 
 # Project-specific Codex skills (kept local, reconsider per-project)
 .codex/skills/unity-mcp-skill/
