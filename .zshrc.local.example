@@ -18,6 +18,12 @@
 #   "ssh-only"  - Only in SSH sessions (good for servers)
 #   "local"     - Only in local sessions, not SSH
 #
+# TMUX_SESSION - Name of the tmux session to attach to (default: "default")
+#   Set this per terminal profile to run multiple independent sessions.
+#   Example: one Windows Terminal profile sets TMUX_SESSION="proj-a", another
+#   sets TMUX_SESSION="proj-b" — opening both gives you two side-by-side
+#   sessions instead of fighting over the same one.
+#
 # MACHINE_TYPE - Machine classification (used by Claude Code hooks)
 #   "local"   - Local machine (WSL/Desktop) - enables command-guard safety
 #   "remote"  - Remote server (VPS) - disables command-guard (disposable)

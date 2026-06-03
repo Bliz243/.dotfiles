@@ -102,11 +102,11 @@ tramp
 
 # Environment files with secrets
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
 !.env.sample
 !.env.template
+!.env.test
 
 # ============================================================================
 # Node - Only truly universal patterns

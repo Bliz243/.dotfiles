@@ -10,7 +10,11 @@
 #   TMUX_AUTO_ATTACH="local"     - Only auto-attach in local sessions (not SSH)
 #   TMUX_AUTO_ATTACH="true"      - Always auto-attach (default)
 #
-# This prevents tmux-in-tmux when SSH-ing to a machine with the same dotfiles.
+#   TMUX_SESSION="<name>"        - Session to attach to (default: "default").
+#                                  Set this per terminal profile to run
+#                                  multiple independent sessions side by side.
+#
+# Prevents tmux-in-tmux when SSH-ing to a machine with the same dotfiles.
 
 _should_attach_tmux() {
   # Never if already in tmux
@@ -31,7 +35,8 @@ _should_attach_tmux() {
 }
 
 if [[ $- == *i* ]] && _should_attach_tmux; then
-  tmux attach -t default 2>/dev/null || tmux new -s default
+  # new-session -A: attach if exists, create if not. exec: no zombie shell after detach.
+  exec tmux new-session -A -s "${TMUX_SESSION:-default}"
 fi
 
 # ─────────────────────────────────────────────
@@ -78,6 +83,7 @@ RPROMPT=''
 zinit light zsh-users/zsh-syntax-highlighting
 
 # Fish-like autosuggestions
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20  # Skip suggestions for long lines (paste safety)
 zinit light zsh-users/zsh-autosuggestions
 
 # Additional completions
@@ -151,19 +157,7 @@ bindkey '^[[F' end-of-line          # End
 bindkey '^A' beginning-of-line      # Ctrl+A (fallback)
 bindkey '^E' end-of-line            # Ctrl+E (fallback)
 
-# fzf-powered Ctrl+R history search (much better than default)
-if command -v fzf &>/dev/null; then
-  _fzf_history_search() {
-    local selected
-    selected=$(fc -rl 1 | awk '{$1=""; print substr($0,2)}' | fzf --height 40% --reverse --tac --no-sort --query="$LBUFFER")
-    if [[ -n "$selected" ]]; then
-      LBUFFER="$selected"
-    fi
-    zle redisplay
-  }
-  zle -N _fzf_history_search
-  bindkey '^R' _fzf_history_search
-fi
+# Ctrl+R history search is provided by fzf key-bindings.zsh (sourced in 02-aliases.zsh)
 
 # ─────────────────────────────────────────────
 # Colorized man pages (using bat)

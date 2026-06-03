@@ -246,13 +246,21 @@ install_neovim_linux() {
   info "Installing Neovim 0.11+..."
   NVIM_VERSION="0.11.0"
 
+  # Detect architecture
+  local ARCH
+  case "$(uname -m)" in
+    x86_64|amd64) ARCH="x86_64" ;;
+    aarch64|arm64) ARCH="aarch64" ;;
+    *) warn "Unsupported architecture $(uname -m) for Neovim binary"; return ;;
+  esac
+
   # Download and install
   cd /tmp
-  curl -LO "https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-x86_64.tar.gz"
-  sudo rm -rf /opt/nvim-linux-x86_64
-  sudo tar -xzf nvim-linux-x86_64.tar.gz -C /opt/
-  sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
-  rm nvim-linux-x86_64.tar.gz
+  curl -LO "https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-${ARCH}.tar.gz"
+  sudo rm -rf "/opt/nvim-linux-${ARCH}"
+  sudo tar -xzf "nvim-linux-${ARCH}.tar.gz" -C /opt/
+  sudo ln -sf "/opt/nvim-linux-${ARCH}/bin/nvim" /usr/local/bin/nvim
+  rm "nvim-linux-${ARCH}.tar.gz"
   cd - >/dev/null
 }
 
@@ -584,13 +592,8 @@ setup_codex_config() {
     link_codex_file "$CODEX_DIR/superpowers/skills" "$AGENTS_DIR/superpowers"
   fi
 
-  # Note about config.toml (not symlinked — contains machine-specific project trust)
-  if [[ ! -f "$CODEX_DIR/config.toml" ]]; then
-    info "No config.toml found. Copying template from dotfiles..."
-    cp "$DOTFILES_CODEX/config.toml" "$CODEX_DIR/config.toml"
-  else
-    info "Existing config.toml preserved. Reference config at: $DOTFILES_CODEX/config.toml"
-  fi
+  # Symlink config.toml so dotfiles stay the source of truth.
+  [[ -f "$DOTFILES_CODEX/config.toml" ]] && link_codex_file "$DOTFILES_CODEX/config.toml" "$CODEX_DIR/config.toml"
 
   info "Codex CLI configuration linked"
 }
@@ -714,11 +717,9 @@ github_setup_identity() {
     return 1
   fi
 
-  cat > "$GIT_LOCAL" << EOF
-[user]
-	name = $GIT_NAME
-	email = $GIT_EMAIL
-EOF
+  # Use git config -f to handle special characters in name/email safely
+  git config -f "$GIT_LOCAL" user.name "$GIT_NAME"
+  git config -f "$GIT_LOCAL" user.email "$GIT_EMAIL"
 
   export GIT_USER_EMAIL="$GIT_EMAIL"
   info "Saved to $GIT_LOCAL"

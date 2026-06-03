@@ -77,8 +77,8 @@
 	colorMoved = zebra
 
 [help]
-	# Autocorrect typos
-	autocorrect = 1
+	# Autocorrect typos - prompt before executing (requires git 2.34+)
+	autocorrect = prompt
 
 [credential]
 	# Cache credentials for 1 hour

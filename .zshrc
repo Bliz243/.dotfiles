@@ -8,6 +8,9 @@ export PATH="$HOME/.local/bin:$PATH"
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
 
+# Disable terminal XOFF/XON flow control so Ctrl-S / Ctrl-Q reach nvim/tmux
+[[ $- == *i* ]] && stty -ixon 2>/dev/null
+
 # XDG Base Directories (used by many tools)
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"

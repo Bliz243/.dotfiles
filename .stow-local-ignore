@@ -6,6 +6,7 @@ uninstall.sh
 setup-github.sh
 README.md
 LICENSE
+\.workmux\.yaml\.example
 
 # Test environment
 test
