@@ -128,7 +128,8 @@ install_macos() {
   brew install \
     zsh git curl stow tmux \
     eza bat fd ripgrep fzf zoxide \
-    neovim gh
+    neovim gh \
+    node bun
 
   # Install Nerd Font for terminal
   info "Installing JetBrainsMono Nerd Font..."
@@ -193,6 +194,12 @@ install_linux() {
 
   # win32yank for clipboard (WSL only; no-op elsewhere)
   install_win32yank_wsl
+
+  # Node.js (system LTS) — required by Mason for the npm-based LSP servers
+  install_node_linux
+
+  # bun — default JS package manager for projects
+  install_bun_linux
 }
 
 install_eza_linux() {
@@ -396,6 +403,56 @@ install_win32yank_wsl() {
     unzip -o win32yank.zip win32yank.exe -d "$HOME/.local/bin" >/dev/null
     chmod +x "$HOME/.local/bin/win32yank.exe"
   )
+}
+
+install_node_linux() {
+  # System Node (LTS) exists purely to feed Mason: the LSP servers for the enabled
+  # lang extras (typescript, tailwind, json, yaml, docker, basedpyright) are npm
+  # packages Mason installs via `npm`. Project JS uses bun, so a single LTS is ideal.
+  # NodeSource (not Ubuntu's apt) provides a current LTS, always on PATH for any
+  # process — including post_install's headless `Lazy! sync`.
+  if command -v node &>/dev/null; then
+    info "Node already installed ($(node -v))"
+    return
+  fi
+
+  info "Installing Node.js LTS (NodeSource)..."
+  ensure_sudo
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  # Download then run (not piped to a shell) so the setup is auditable.
+  if curl -fsSL https://deb.nodesource.com/setup_lts.x -o "$tmpdir/nodesource.sh" \
+    && sudo -E bash "$tmpdir/nodesource.sh" \
+    && sudo apt install -y nodejs; then
+    info "Node $(node -v) / npm $(npm -v) installed"
+  else
+    warn "Node install failed — Mason LSP servers (ts/tailwind/json/yaml/docker/python) won't install"
+  fi
+}
+
+install_bun_linux() {
+  # bun: default JS package manager for projects. ~/.bun/bin is already on PATH via .zshrc.
+  if command -v bun &>/dev/null || [[ -x "$HOME/.bun/bin/bun" ]]; then
+    info "bun already installed"
+    return
+  fi
+
+  info "Installing bun..."
+  local arch="x64"
+  case "$(uname -m)" in aarch64 | arm64) arch="aarch64" ;; esac
+  mkdir -p "$HOME/.bun/bin"
+
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  if curl -fsSLo "$tmpdir/bun.zip" \
+      "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-${arch}.zip" \
+    && unzip -o "$tmpdir/bun.zip" -d "$tmpdir" >/dev/null; then
+    mv "$tmpdir"/bun-linux-*/bun "$HOME/.bun/bin/bun"
+    chmod +x "$HOME/.bun/bin/bun"
+    info "bun $("$HOME/.bun/bin/bun" --version) installed"
+  else
+    warn "bun install failed — install manually from https://bun.sh"
+  fi
 }
 
 # stow_dotfiles() is provided by scripts/lib/links.sh

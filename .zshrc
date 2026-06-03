@@ -24,9 +24,8 @@ for file in ~/.zsh/*.zsh(N); do
   source "$file"
 done
 
-export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Node is installed system-wide (NodeSource LTS) for editor/LSP tooling; project JS
+# uses bun (below). No nvm — install.sh provisions both.
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
