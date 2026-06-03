@@ -170,8 +170,7 @@ This way:
 ├── .tmux.conf              # Tmux config (configurable prefix, Catppuccin)
 ├── .config/
 │   ├── nvim/               # Neovim (LazyVim)
-│   ├── alacritty/          # Terminal emulator config
-│   └── starship.toml       # Starship prompt (used outside tmux)
+│   └── alacritty/          # Terminal emulator config
 ├── .gitconfig              # Git configuration
 └── .gitignore_global       # Global gitignore
 ```
