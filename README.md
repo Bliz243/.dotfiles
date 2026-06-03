@@ -241,7 +241,7 @@ Leader key: `Space`
 
 Neovim runs [LazyVim](https://www.lazyvim.org). Language support (LSP servers, Treesitter
 parsers, and formatters) comes from LazyVim **extras**, enabled in
-`~/.config/nvim/lua/config/lazy.lua`: TypeScript, Python, Go, Docker, YAML, Terraform,
+`~/.config/nvim/lua/config/lazy.lua`: TypeScript, Python, Docker, YAML, Terraform,
 Tailwind, JSON.
 
 Add or remove languages with `:LazyExtras` inside Neovim, or by editing the `extras` imports
