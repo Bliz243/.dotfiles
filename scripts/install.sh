@@ -134,8 +134,18 @@ install_macos() {
 # ─────────────────────────────────────────────
 # Install packages - Linux (Ubuntu/Debian)
 # ─────────────────────────────────────────────
+# Acquire sudo up front so the install doesn't hang on a password prompt mid-run.
+ensure_sudo() {
+  if ! sudo -n true 2>/dev/null; then
+    info "Administrator (sudo) access is required to install packages."
+    sudo -v || error "Could not obtain sudo access. Re-run once sudo is available."
+  fi
+}
+
 install_linux() {
   info "Installing packages via apt..."
+
+  ensure_sudo
 
   sudo apt update
   sudo apt install -y \
@@ -160,7 +170,7 @@ install_linux() {
   # tmux 3.4+ (apt version is outdated)
   install_tmux_linux
 
-  # Neovim 0.11+
+  # Neovim 0.11.2+ (required by LazyVim)
   install_neovim_linux
 
   # Nerd Font for terminal
@@ -168,6 +178,12 @@ install_linux() {
 
   # GitHub CLI
   install_gh_linux
+
+  # lazygit (used by Neovim/LazyVim git workflow)
+  install_lazygit_linux
+
+  # win32yank for clipboard (WSL only; no-op elsewhere)
+  install_win32yank_wsl
 }
 
 install_eza_linux() {
@@ -216,35 +232,38 @@ install_tmux_linux() {
   info "Installing tmux $TMUX_REQUIRED from source..."
   TMUX_VERSION="3.4"
 
-  cd /tmp
-  curl -LO "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/tmux-${TMUX_VERSION}.tar.gz"
-  tar -xzf "tmux-${TMUX_VERSION}.tar.gz"
-  cd "tmux-${TMUX_VERSION}"
-  ./configure
-  make -j"$(nproc)"
-  sudo make install
-  cd /tmp
-  rm -rf "tmux-${TMUX_VERSION}" "tmux-${TMUX_VERSION}.tar.gz"
-  cd - >/dev/null
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  (
+    cd "$tmpdir"
+    curl -LO "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/tmux-${TMUX_VERSION}.tar.gz"
+    tar -xzf "tmux-${TMUX_VERSION}.tar.gz"
+    cd "tmux-${TMUX_VERSION}"
+    ./configure
+    make -j"$(nproc)"
+    sudo make install
+  )
 
   info "tmux $TMUX_VERSION installed successfully"
 }
 
 install_neovim_linux() {
-  # Check if nvim is already installed and is 0.11+
+  # LazyVim requires Neovim >= 0.11.2 (older versions hang on a "press any key" prompt).
+  NVIM_REQUIRED="0.11.2"
+
+  # Check if an adequate nvim is already installed
   if command -v nvim &>/dev/null; then
-    NVIM_VERSION=$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
-    NVIM_MAJOR=$(echo "$NVIM_VERSION" | cut -d. -f1)
-    NVIM_MINOR=$(echo "$NVIM_VERSION" | cut -d. -f2)
-    if [[ "$NVIM_MAJOR" -gt 0 ]] || [[ "$NVIM_MAJOR" -eq 0 && "$NVIM_MINOR" -ge 11 ]]; then
+    NVIM_VERSION=$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [[ -n "$NVIM_VERSION" ]] && \
+       [[ "$(printf '%s\n' "$NVIM_REQUIRED" "$NVIM_VERSION" | sort -V | head -1)" == "$NVIM_REQUIRED" ]]; then
       info "Neovim $NVIM_VERSION already installed"
       return
     fi
-    warn "Neovim $NVIM_VERSION found, but 0.11+ required. Upgrading..."
+    warn "Neovim ${NVIM_VERSION:-unknown} found, but $NVIM_REQUIRED+ required. Upgrading..."
   fi
 
-  info "Installing Neovim 0.11+..."
-  NVIM_VERSION="0.11.0"
+  info "Installing Neovim..."
+  NVIM_VERSION="0.12.2"
 
   # Detect architecture
   local ARCH
@@ -255,13 +274,15 @@ install_neovim_linux() {
   esac
 
   # Download and install
-  cd /tmp
-  curl -LO "https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-${ARCH}.tar.gz"
-  sudo rm -rf "/opt/nvim-linux-${ARCH}"
-  sudo tar -xzf "nvim-linux-${ARCH}.tar.gz" -C /opt/
-  sudo ln -sf "/opt/nvim-linux-${ARCH}/bin/nvim" /usr/local/bin/nvim
-  rm "nvim-linux-${ARCH}.tar.gz"
-  cd - >/dev/null
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  (
+    cd "$tmpdir"
+    curl -LO "https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/nvim-linux-${ARCH}.tar.gz"
+    sudo rm -rf "/opt/nvim-linux-${ARCH}"
+    sudo tar -xzf "nvim-linux-${ARCH}.tar.gz" -C /opt/
+    sudo ln -sf "/opt/nvim-linux-${ARCH}/bin/nvim" /usr/local/bin/nvim
+  )
 }
 
 install_font_linux() {
@@ -277,20 +298,20 @@ install_font_linux() {
   info "Installing JetBrainsMono Nerd Font..."
 
   mkdir -p "$FONT_DIR"
-  cd /tmp
 
-  # Download from Nerd Fonts releases
-  curl -fLo "JetBrainsMono.zip" \
-    "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
-
-  # Extract to fonts directory
-  unzip -o JetBrainsMono.zip -d "$FONT_DIR/JetBrainsMono" >/dev/null 2>&1
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  (
+    cd "$tmpdir"
+    # Download from Nerd Fonts releases
+    curl -fLo "JetBrainsMono.zip" \
+      "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
+    # Extract to fonts directory
+    unzip -o JetBrainsMono.zip -d "$FONT_DIR/JetBrainsMono" >/dev/null 2>&1
+  )
 
   # Refresh font cache
   fc-cache -fv "$FONT_DIR" >/dev/null 2>&1
-
-  rm JetBrainsMono.zip
-  cd - >/dev/null
 
   info "JetBrainsMono Nerd Font installed"
 }
@@ -310,6 +331,62 @@ install_gh_linux() {
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
   sudo apt update
   sudo apt install -y gh
+}
+
+install_lazygit_linux() {
+  if command -v lazygit &>/dev/null; then
+    info "lazygit already installed"
+    return
+  fi
+
+  info "Installing lazygit..."
+
+  local arch
+  case "$(uname -m)" in
+    x86_64|amd64) arch="x86_64" ;;
+    aarch64|arm64) arch="arm64" ;;
+    *) warn "Unsupported architecture $(uname -m) for lazygit"; return ;;
+  esac
+
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  (
+    cd "$tmpdir"
+    local ver
+    ver="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
+      | grep -oE '"tag_name": *"v[^"]+"' | head -1 | grep -oE '[0-9.]+')"
+    if [[ -z "$ver" ]]; then
+      warn "Could not determine lazygit version; skipping"
+      exit 0
+    fi
+    curl -fsSLo lazygit.tar.gz \
+      "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${ver}_Linux_${arch}.tar.gz"
+    tar -xzf lazygit.tar.gz lazygit
+    sudo install lazygit /usr/local/bin
+  )
+}
+
+install_win32yank_wsl() {
+  # WSL only: clipboard provider so Neovim can reach the Windows clipboard.
+  grep -qi microsoft /proc/version 2>/dev/null || return 0
+
+  if command -v win32yank.exe &>/dev/null; then
+    info "win32yank already installed"
+    return
+  fi
+
+  info "Installing win32yank (WSL clipboard)..."
+  mkdir -p "$HOME/.local/bin"
+
+  local tmpdir; tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  (
+    cd "$tmpdir"
+    curl -fsSLo win32yank.zip \
+      "https://github.com/equalsraf/win32yank/releases/latest/download/win32yank-x64.zip"
+    unzip -o win32yank.zip win32yank.exe -d "$HOME/.local/bin" >/dev/null
+    chmod +x "$HOME/.local/bin/win32yank.exe"
+  )
 }
 
 # ─────────────────────────────────────────────
@@ -397,9 +474,9 @@ EOF
     fi
   fi
 
-  # Sync Neovim plugins
-  info "Syncing Neovim plugins (this may take a moment)..."
-  nvim --headless "+Lazy sync" "+sleep 10" +qa 2>/dev/null || warn "Neovim plugin sync had issues - run :Lazy sync manually"
+  # Sync Neovim plugins (Lazy! runs synchronously and exits when done)
+  info "Syncing Neovim plugins (this may take a few minutes)..."
+  nvim --headless "+Lazy! sync" +qa || warn "Neovim plugin sync had issues - run :Lazy sync manually"
 
   # Claude Code configuration (symlinks for global config)
   setup_claude_config
@@ -438,6 +515,9 @@ setup_claude_config() {
   mkdir -p "$CLAUDE_DIR/skills"
   mkdir -p "$CLAUDE_DIR/agents"
 
+  # Remove dangling symlinks left by skills/agents that were deleted from dotfiles
+  find "$CLAUDE_DIR/skills" "$CLAUDE_DIR/agents" -maxdepth 1 -type l ! -exec test -e {} \; -delete 2>/dev/null || true
+
   # Helper to symlink with backup
   link_claude_file() {
     local src="$1"
@@ -453,6 +533,8 @@ setup_claude_config() {
   }
 
   # Symlink individual files
+  # AGENTS.md is the canonical instructions; CLAUDE.md is a @AGENTS.md shim. Both must be linked.
+  [[ -f "$DOTFILES_CLAUDE/AGENTS.md" ]] && link_claude_file "$DOTFILES_CLAUDE/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
   [[ -f "$DOTFILES_CLAUDE/CLAUDE.md" ]] && link_claude_file "$DOTFILES_CLAUDE/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
   [[ -f "$DOTFILES_CLAUDE/settings.json" ]] && link_claude_file "$DOTFILES_CLAUDE/settings.json" "$CLAUDE_DIR/settings.json"
   [[ -f "$DOTFILES_CLAUDE/statusline.js" ]] && link_claude_file "$DOTFILES_CLAUDE/statusline.js" "$CLAUDE_DIR/statusline.js"
@@ -553,6 +635,9 @@ setup_codex_config() {
   mkdir -p "$CODEX_DIR"
   mkdir -p "$AGENTS_DIR"
 
+  # Remove dangling symlinks left by skills that were deleted from dotfiles
+  find "$AGENTS_DIR" -maxdepth 1 -type l ! -exec test -e {} \; -delete 2>/dev/null || true
+
   # Helper to symlink with backup
   link_codex_file() {
     local src="$1"
@@ -567,8 +652,8 @@ setup_codex_config() {
     ln -sf "$src" "$dest"
   }
 
-  # Symlink AGENTS.md (global instructions)
-  [[ -f "$DOTFILES_CODEX/AGENTS.md" ]] && link_codex_file "$DOTFILES_CODEX/AGENTS.md" "$CODEX_DIR/AGENTS.md"
+  # Single source of truth: Codex reads the canonical AGENTS.md from the Claude tree.
+  [[ -f "$DOTFILES_CLAUDE/AGENTS.md" ]] && link_codex_file "$DOTFILES_CLAUDE/AGENTS.md" "$CODEX_DIR/AGENTS.md"
 
   # Symlink custom skills into ~/.agents/skills/
   for skill in "$DOTFILES_CODEX/skills/"*/; do
@@ -592,8 +677,12 @@ setup_codex_config() {
     link_codex_file "$CODEX_DIR/superpowers/skills" "$AGENTS_DIR/superpowers"
   fi
 
-  # Symlink config.toml so dotfiles stay the source of truth.
-  [[ -f "$DOTFILES_CODEX/config.toml" ]] && link_codex_file "$DOTFILES_CODEX/config.toml" "$CODEX_DIR/config.toml"
+  # config.toml is machine-specific (project trust paths, MCP IPs) so it is COPIED from the
+  # template on first install and never overwritten — TOML can't be merged like a symlink.
+  if [[ ! -f "$CODEX_DIR/config.toml" ]] && [[ -f "$DOTFILES_CODEX/config.toml.example" ]]; then
+    cp "$DOTFILES_CODEX/config.toml.example" "$CODEX_DIR/config.toml"
+    info "Created ~/.codex/config.toml from template (edit it for projects + MCP servers)"
+  fi
 
   info "Codex CLI configuration linked"
 }

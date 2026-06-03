@@ -54,25 +54,32 @@ else
     test_result "Neovim installed" "fail"
 fi
 
-# Test 4: Neovim version is 0.11+
+# Test 4: Neovim version is >= 0.11.2 (required by LazyVim)
 echo "Testing: Neovim version..."
-NVIM_VERSION=$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-NVIM_MAJOR=$(echo "$NVIM_VERSION" | cut -d. -f1)
-NVIM_MINOR=$(echo "$NVIM_VERSION" | cut -d. -f2)
-if [[ "$NVIM_MAJOR" -gt 0 ]] || [[ "$NVIM_MAJOR" -eq 0 && "$NVIM_MINOR" -ge 11 ]]; then
-    test_result "Neovim 0.11+ ($NVIM_VERSION)" "pass"
+NVIM_REQUIRED="0.11.2"
+NVIM_VERSION=$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+if [[ -n "$NVIM_VERSION" ]] && \
+   [[ "$(printf '%s\n' "$NVIM_REQUIRED" "$NVIM_VERSION" | sort -V | head -1)" == "$NVIM_REQUIRED" ]]; then
+    test_result "Neovim >= $NVIM_REQUIRED ($NVIM_VERSION)" "pass"
 else
-    test_result "Neovim 0.11+ (got $NVIM_VERSION)" "fail"
+    test_result "Neovim >= $NVIM_REQUIRED (got ${NVIM_VERSION:-none})" "fail"
 fi
 
-# Test 5: Neovim plugins sync
-echo "Testing: Neovim plugins (this may take a moment)..."
-NVIM_SYNC_OUTPUT=$(nvim --headless "+Lazy! sync" +qa 2>&1 || true)
-if echo "$NVIM_SYNC_OUTPUT" | grep -qiE "(error|failed)"; then
-    echo "  Plugin sync had errors"
-    test_result "Neovim plugins sync" "fail"
+# Test 5: LazyVim installs and the config loads cleanly
+# (the first sync can emit a transient treesitter config error, so the real check is a
+#  clean second startup once plugins are present.)
+echo "Testing: LazyVim install (may take a few minutes)..."
+GIT_TERMINAL_PROMPT=0 nvim --headless "+Lazy! sync" +qa </dev/null >/tmp/lazy-sync.log 2>&1 || true
+if [[ -d ~/.local/share/nvim/lazy/LazyVim ]] && [[ -e ~/.config/nvim/lazy-lock.json ]]; then
+    LOAD_OUT=$(nvim --headless "+lua print('NVIM_LOAD_OK')" +qa </dev/null 2>&1 || true)
+    if echo "$LOAD_OUT" | grep -q "NVIM_LOAD_OK" && ! echo "$LOAD_OUT" | grep -qiE "error|E[0-9]+:"; then
+        test_result "LazyVim installed and config loads" "pass"
+    else
+        echo "  Second load reported errors"
+        test_result "LazyVim installed and config loads" "fail"
+    fi
 else
-    test_result "Neovim plugins sync" "pass"
+    test_result "LazyVim installed and config loads" "fail"
 fi
 
 # Test 6: Neovim checkhealth (basic)

@@ -19,7 +19,7 @@ cd ~/.dotfiles
 ```
 
 The install script handles:
-- Installing dependencies (zsh, neovim 0.11+, tmux 3.4+, modern CLI tools)
+- Installing dependencies (zsh, neovim 0.11.2+, tmux 3.4+, modern CLI tools)
 - Stowing dotfiles to home directory
 - Setting zsh as default shell
 - Installing tmux plugin manager (TPM)
