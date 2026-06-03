@@ -9,6 +9,10 @@
 # Codex CLI - machine-specific (config.toml has project trust paths)
 # .codex/config.toml is a template; actual config lives in ~/.codex/
 
+# Project-specific Codex skills (kept local, reconsider per-project)
+.codex/skills/unity-mcp-skill/
+.codex/skills/unity-uitoolkit-runtime/
+
 # Playwright CLI session artifacts
 .playwright-cli/
 

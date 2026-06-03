@@ -1,18 +1,114 @@
 # Codex CLI Configuration
-# Portable settings managed via dotfiles
-# Machine-specific settings (project trust, auth) stay in ~/.codex/config.toml
+# Source of truth managed via dotfiles.
+# Runtime data and auth stay in ~/.codex/.
 
-model = "gpt-5.3-codex"
+model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 
-# Sandbox: workspace-write allows file edits in project, no network by default
+# Sandbox: workspace-write allows file edits in project, no network by default.
 sandbox_mode = "workspace-write"
 
 # Web search
 web_search = "cached"
+service_tier = "fast"
 
-# Features
 [features]
 shell_tool = true
 request_rule = true
+goals = true
+rmcp_client = true
+
+[projects."/home/jacob/ImperiOps/subscription-management"]
+trust_level = "trusted"
+
+[projects."/home/jacob/DTU/Event-Driven"]
+trust_level = "trusted"
+
+[projects."/home/jacob/Kathie_and_Jacob_projects/Timeline"]
+trust_level = "trusted"
+
+[projects."/home/jacob/Master-Project/frontend-dokploy-migration"]
+trust_level = "trusted"
+
+[projects."/home/jacob/Ai-fence"]
+trust_level = "trusted"
+
+[projects."/home/jacob/FenceTechnology/Webapp"]
+trust_level = "trusted"
+
+[projects."/home/jacob/talos-homelab"]
+trust_level = "trusted"
+
+[projects."/mnt/c/Users/Kjærby/Documents/Unity/FenceSnap"]
+trust_level = "trusted"
+
+[projects."/mnt/c/users/kjærby/documents/unity/fencesnap"]
+trust_level = "trusted"
+
+[projects."/mnt/c/Unity"]
+trust_level = "trusted"
+
+[projects."/mnt/c/Unity/FenceSnap"]
+trust_level = "trusted"
+
+[projects."/mnt/c/Unity/AR Placement Perfection"]
+trust_level = "trusted"
+
+[notice]
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+hide_rate_limit_model_nudge = true
+
+[notice.model_migrations]
+"gpt-5.1-codex-max" = "gpt-5.2-codex"
+
+[plugins."github@openai-curated"]
+enabled = true
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[mcp_servers.unityMCP]
+url = "http://192.168.1.218:8081/mcp"
+
+[mcp_servers.unityMCP.tools.set_active_instance]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.manage_scene]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.read_console]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.run_tests]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.manage_editor]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.refresh_unity]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.execute_code]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.execute_menu_item]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.manage_tools]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.find_gameobjects]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.manage_camera]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.manage_asset]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.manage_ui]
+approval_mode = "approve"
+
+[mcp_servers.unityMCP.tools.batch_execute]
+approval_mode = "approve"
