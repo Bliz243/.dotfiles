@@ -58,6 +58,12 @@ alias e='$EDITOR'
 alias ccd='CLAUDE_GUARD=1 claude --dangerously-skip-permissions'
 
 # ─────────────────────────────────────────────
+# Dotfiles
+# ─────────────────────────────────────────────
+# Pull latest dotfiles and apply only what changed (restow + relink + plugin sync)
+alias dotsync='$HOME/.dotfiles/scripts/sync.sh --pull'
+
+# ─────────────────────────────────────────────
 # Workmux (git worktrees + tmux)
 # ─────────────────────────────────────────────
 alias wm='workmux'

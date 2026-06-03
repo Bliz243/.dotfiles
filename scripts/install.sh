@@ -21,6 +21,10 @@ info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
+# Repo root + shared symlink/stow helpers (stow_dotfiles, relink_claude_config, etc.)
+DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+source "$DOTFILES_DIR/scripts/lib/links.sh"
+
 # ─────────────────────────────────────────────
 # Parse arguments
 # ─────────────────────────────────────────────
@@ -389,43 +393,7 @@ install_win32yank_wsl() {
   )
 }
 
-# ─────────────────────────────────────────────
-# Stow dotfiles
-# ─────────────────────────────────────────────
-stow_dotfiles() {
-  info "Stowing dotfiles..."
-
-  DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-  cd "$DOTFILES_DIR"
-
-  # Backup suffix with timestamp
-  BACKUP_SUFFIX=".backup-$(date +%Y%m%d-%H%M%S)"
-
-  # Files/directories that might conflict with stow
-  CONFLICT_FILES=".zshrc .tmux.conf .gitconfig .gitignore_global .zshrc.local.example"
-  CONFLICT_DIRS=".config/nvim .config/alacritty .config/starship.toml .zsh"
-
-  # Backup conflicting files (not symlinks)
-  for file in $CONFLICT_FILES; do
-    if [[ -f "$HOME/$file" ]] && [[ ! -L "$HOME/$file" ]]; then
-      warn "Backing up existing $file to $file$BACKUP_SUFFIX"
-      mv "$HOME/$file" "$HOME/$file$BACKUP_SUFFIX"
-    fi
-  done
-
-  # Backup conflicting directories (not symlinks)
-  for dir in $CONFLICT_DIRS; do
-    if [[ -d "$HOME/$dir" ]] && [[ ! -L "$HOME/$dir" ]]; then
-      warn "Backing up existing $dir to $dir$BACKUP_SUFFIX"
-      mv "$HOME/$dir" "$HOME/$dir$BACKUP_SUFFIX"
-    fi
-  done
-
-  # Stow dotfiles (ignore patterns defined in .stow-local-ignore)
-  if ! stow . --target="$HOME" --restow; then
-    error "Stow failed. Check for conflicting files in $HOME"
-  fi
-}
+# stow_dotfiles() is provided by scripts/lib/links.sh
 
 # ─────────────────────────────────────────────
 # Post-install setup
@@ -499,72 +467,7 @@ EOF
 # ─────────────────────────────────────────────
 setup_claude_config() {
   info "Setting up Claude Code configuration..."
-
-  CLAUDE_DIR="$HOME/.claude"
-  DOTFILES_CLAUDE="$HOME/.dotfiles/.claude"
-
-  # Skip if dotfiles claude config doesn't exist
-  if [[ ! -d "$DOTFILES_CLAUDE" ]]; then
-    warn "No Claude config in dotfiles, skipping"
-    return
-  fi
-
-  # Create directories if needed
-  mkdir -p "$CLAUDE_DIR/hooks"
-  mkdir -p "$CLAUDE_DIR/config"
-  mkdir -p "$CLAUDE_DIR/skills"
-  mkdir -p "$CLAUDE_DIR/agents"
-
-  # Remove dangling symlinks left by skills/agents that were deleted from dotfiles
-  find "$CLAUDE_DIR/skills" "$CLAUDE_DIR/agents" -maxdepth 1 -type l ! -exec test -e {} \; -delete 2>/dev/null || true
-
-  # Helper to symlink with backup
-  link_claude_file() {
-    local src="$1"
-    local dest="$2"
-
-    if [[ -e "$dest" ]] && [[ ! -L "$dest" ]]; then
-      local backup="${dest}.backup-$(date +%Y%m%d-%H%M%S)"
-      mv "$dest" "$backup"
-      warn "Backed up: $dest → $backup"
-    fi
-
-    ln -sf "$src" "$dest"
-  }
-
-  # Symlink individual files
-  # AGENTS.md is the canonical instructions; CLAUDE.md is a @AGENTS.md shim. Both must be linked.
-  [[ -f "$DOTFILES_CLAUDE/AGENTS.md" ]] && link_claude_file "$DOTFILES_CLAUDE/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
-  [[ -f "$DOTFILES_CLAUDE/CLAUDE.md" ]] && link_claude_file "$DOTFILES_CLAUDE/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
-  [[ -f "$DOTFILES_CLAUDE/settings.json" ]] && link_claude_file "$DOTFILES_CLAUDE/settings.json" "$CLAUDE_DIR/settings.json"
-  [[ -f "$DOTFILES_CLAUDE/statusline.js" ]] && link_claude_file "$DOTFILES_CLAUDE/statusline.js" "$CLAUDE_DIR/statusline.js"
-
-  # Symlink hooks
-  for hook in "$DOTFILES_CLAUDE/hooks/"*.js; do
-    [[ -f "$hook" ]] || continue
-    link_claude_file "$hook" "$CLAUDE_DIR/hooks/$(basename "$hook")"
-  done
-
-  # Symlink config files
-  for config in "$DOTFILES_CLAUDE/config/"*; do
-    [[ -e "$config" ]] || continue
-    link_claude_file "$config" "$CLAUDE_DIR/config/$(basename "$config")"
-  done
-
-  # Symlink skills (as directories)
-  for skill in "$DOTFILES_CLAUDE/skills/"*/; do
-    [[ -d "$skill" ]] || continue
-    local skill_name=$(basename "$skill")
-    link_claude_file "$skill" "$CLAUDE_DIR/skills/$skill_name"
-  done
-
-  # Symlink agents
-  for agent in "$DOTFILES_CLAUDE/agents/"*.md; do
-    [[ -f "$agent" ]] || continue
-    link_claude_file "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
-  done
-
-  info "Claude Code configuration linked"
+  relink_claude_config
 }
 
 # ─────────────────────────────────────────────
@@ -621,70 +524,21 @@ setup_claude_code() {
 setup_codex_config() {
   info "Setting up Codex CLI configuration..."
 
-  CODEX_DIR="$HOME/.codex"
-  AGENTS_DIR="$HOME/.agents/skills"
-  DOTFILES_CODEX="$HOME/.dotfiles/.codex"
+  [[ -d "$DOTFILES_DIR/.codex" ]] || { warn "No Codex config in dotfiles, skipping"; return; }
 
-  # Skip if dotfiles codex config doesn't exist
-  if [[ ! -d "$DOTFILES_CODEX" ]]; then
-    warn "No Codex config in dotfiles, skipping"
-    return
-  fi
-
-  # Create directories if needed
-  mkdir -p "$CODEX_DIR"
-  mkdir -p "$AGENTS_DIR"
-
-  # Remove dangling symlinks left by skills that were deleted from dotfiles
-  find "$AGENTS_DIR" -maxdepth 1 -type l ! -exec test -e {} \; -delete 2>/dev/null || true
-
-  # Helper to symlink with backup
-  link_codex_file() {
-    local src="$1"
-    local dest="$2"
-
-    if [[ -e "$dest" ]] && [[ ! -L "$dest" ]]; then
-      local backup="${dest}.backup-$(date +%Y%m%d-%H%M%S)"
-      mv "$dest" "$backup"
-      warn "Backed up: $dest → $backup"
-    fi
-
-    ln -sf "$src" "$dest"
-  }
-
-  # Single source of truth: Codex reads the canonical AGENTS.md from the Claude tree.
-  [[ -f "$DOTFILES_CLAUDE/AGENTS.md" ]] && link_codex_file "$DOTFILES_CLAUDE/AGENTS.md" "$CODEX_DIR/AGENTS.md"
-
-  # Symlink custom skills into ~/.agents/skills/
-  for skill in "$DOTFILES_CODEX/skills/"*/; do
-    [[ -d "$skill" ]] || continue
-    local skill_name=$(basename "$skill")
-    link_codex_file "$skill" "$AGENTS_DIR/$skill_name"
-  done
-
-  # Install superpowers if not already cloned
-  if [[ ! -d "$CODEX_DIR/superpowers" ]]; then
+  # Bootstrap: clone superpowers once (network); relinking is handled by the lib.
+  local codex_dir="$HOME/.codex"
+  if [[ ! -d "$codex_dir/superpowers" ]]; then
     info "Cloning superpowers for Codex..."
-    if git clone https://github.com/obra/superpowers.git "$CODEX_DIR/superpowers" 2>/dev/null; then
+    mkdir -p "$codex_dir"
+    if git clone https://github.com/obra/superpowers.git "$codex_dir/superpowers" 2>/dev/null; then
       info "Superpowers cloned"
     else
       warn "Failed to clone superpowers. Install manually: git clone https://github.com/obra/superpowers.git ~/.codex/superpowers"
     fi
   fi
 
-  # Symlink superpowers skills
-  if [[ -d "$CODEX_DIR/superpowers/skills" ]]; then
-    link_codex_file "$CODEX_DIR/superpowers/skills" "$AGENTS_DIR/superpowers"
-  fi
-
-  # config.toml is machine-specific (project trust paths, MCP IPs) so it is COPIED from the
-  # template on first install and never overwritten — TOML can't be merged like a symlink.
-  if [[ ! -f "$CODEX_DIR/config.toml" ]] && [[ -f "$DOTFILES_CODEX/config.toml.example" ]]; then
-    cp "$DOTFILES_CODEX/config.toml.example" "$CODEX_DIR/config.toml"
-    info "Created ~/.codex/config.toml from template (edit it for projects + MCP servers)"
-  fi
-
-  info "Codex CLI configuration linked"
+  relink_codex_config
 }
 
 # ─────────────────────────────────────────────
