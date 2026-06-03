@@ -15,7 +15,9 @@ link_file() {
     mv "$dest" "$backup"
     warn "Backed up: $dest → $backup"
   fi
-  ln -sf "$src" "$dest"
+  # -n/--no-dereference: if $dest is already a symlink to a dir, replace it instead of
+  # creating the new link *inside* that dir (the classic `ln -sf` footgun on re-runs).
+  ln -sfn "$src" "$dest"
 }
 
 # Delete dangling symlinks (target no longer exists) directly under each given dir.
