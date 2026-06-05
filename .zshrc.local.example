@@ -1,78 +1,21 @@
-# ~/.zshrc.local - Machine-specific configuration
-# Copy this file to ~/.zshrc.local and customize for each machine.
-# This file is NOT tracked in git.
-
-# ─────────────────────────────────────────────
-# Tmux Configuration
-# ─────────────────────────────────────────────
-# Different prefixes for local vs remote prevents confusion when SSH-ing
-# between machines with the same dotfiles.
+# ~/.zshrc.local — machine-specific overrides (NOT tracked in git).
 #
-# TMUX_PREFIX - The tmux prefix key
-#   "C-a"  - Ctrl+A (default, recommended for local/WSL)
-#   "C-b"  - Ctrl+B (recommended for VPS/remote servers)
+# install.sh auto-creates this file with the right tmux settings for --local/--remote,
+# so you usually don't need to copy this. It's a reference for what else you can put here.
 #
-# TMUX_AUTO_ATTACH - When to auto-attach tmux
-#   "true"      - Always auto-attach (default)
-#   "false"     - Never auto-attach
-#   "ssh-only"  - Only in SSH sessions (good for servers)
-#   "local"     - Only in local sessions, not SSH
+# Settings this setup recognises (full tmux docs live in .zsh/01-zinit.zsh):
+#   MACHINE_TYPE      "local" | "remote"   — "local" enables the Claude command-guard hook
+#   TMUX_PREFIX       "C-a" (local) | "C-b" (remote)
+#   TMUX_AUTO_ATTACH  "true" | "false" | "ssh-only" | "local"
+#   TMUX_SESSION      session name (default "default") — set per terminal profile for
+#                     independent side-by-side sessions
 #
-# TMUX_SESSION - Name of the tmux session to attach to (default: "default")
-#   Set this per terminal profile to run multiple independent sessions.
-#   Example: one Windows Terminal profile sets TMUX_SESSION="proj-a", another
-#   sets TMUX_SESSION="proj-b" — opening both gives you two side-by-side
-#   sessions instead of fighting over the same one.
-#
-# MACHINE_TYPE - Machine classification (used by Claude Code hooks)
-#   "local"   - Local machine (WSL/Desktop) - enables command-guard safety
-#   "remote"  - Remote server (VPS) - disables command-guard (disposable)
-#
-# ─────────────────────────────────────────────
-# Example configurations:
-# ─────────────────────────────────────────────
-#
-# LOCAL MACHINE (WSL/Desktop):
+# Example:
 #   export MACHINE_TYPE="local"
 #   export TMUX_PREFIX="C-a"
 #   TMUX_AUTO_ATTACH="true"
 #
-# REMOTE SERVER (VPS):
-#   export MACHINE_TYPE="remote"
-#   export TMUX_PREFIX="C-b"
-#   TMUX_AUTO_ATTACH="ssh-only"
-#
-# Result: Ctrl+A controls local tmux, Ctrl+B controls VPS tmux.
-# Visual: Local uses mocha theme, VPS uses macchiato theme.
-# Safety: command-guard only runs on local machines.
-# ─────────────────────────────────────────────
-
-# Uncomment and customize for this machine:
-# export TMUX_PREFIX="C-a"
-# TMUX_AUTO_ATTACH="true"
-
-# ─────────────────────────────────────────────
-# Machine-specific settings
-# ─────────────────────────────────────────────
-
-# Custom PATH entries
-# export PATH="$HOME/bin:$PATH"
-
-# Environment variables
-# export EDITOR="nvim"
-
-# Machine-specific aliases
-# alias work='cd ~/projects'
-
-# Load secrets (API keys, tokens, etc.)
-# [[ -f ~/.secrets ]] && source ~/.secrets
-
-# WSL-specific
-# if [[ -n "$WSL_DISTRO_NAME" ]]; then
-#   export BROWSER="wslview"
-# fi
-
-# macOS-specific
-# if [[ "$OSTYPE" == "darwin"* ]]; then
-#   export HOMEBREW_NO_AUTO_UPDATE=1
-# fi
+# Other machine-specific bits you might add:
+#   export PATH="$HOME/bin:$PATH"
+#   [[ -f ~/.secrets ]] && source ~/.secrets        # API keys, tokens
+#   alias work='cd ~/projects'

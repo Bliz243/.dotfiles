@@ -38,8 +38,8 @@ agent: claude
 
 # Commands run after worktree creation
 post_create:
-  - pnpm install
-  - pnpm prisma generate
+  - bun install
+  # - bunx prisma generate   # uncomment if the project uses Prisma
 
 #-------------------------------------------------------------------------------
 # Files
@@ -59,8 +59,7 @@ files:
     - .claude/skills
     - .claude/statusline.js
 
-  # NOTE: With pnpm, we don't need to symlink anything
-  # - node_modules: pnpm uses its own symlink structure, each worktree gets its own
-  # - .pnpm-store: pnpm uses a global store (~/.local/share/pnpm/store)
-  # Dependencies install fast via post_create hook
+  # NOTE: each worktree installs its own deps via the post_create hook.
+  # bun uses a global cache (~/.bun/install/cache), so installs are fast and
+  # node_modules doesn't need symlinking between worktrees.
   # NOTE: .claude/state/ is NOT copied - each worktree has its own agent state

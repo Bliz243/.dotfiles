@@ -5,6 +5,7 @@ scripts
 README.md
 LICENSE
 \.workmux\.yaml\.example
+\.zshrc\.local\.example
 
 # Test environment
 test
@@ -15,5 +16,4 @@ test
 
 # Local-only directories (machine-specific settings)
 \.claude
-\.claude-template
 \.codex
