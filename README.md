@@ -128,7 +128,7 @@ cp ~/.dotfiles/.workmux.yaml.example /path/to/project/.workmux.yaml
 
 The template includes:
 - Two-pane layout (Claude agent + shell)
-- pnpm + Prisma post-create hooks
+- bun post-create hook (with an optional Prisma line)
 - .env and .claude/ file copying for worktrees
 
 ## What's Included
@@ -259,19 +259,23 @@ Machine-specific configs (not tracked in git):
 
 ## Testing
 
+The Docker image runs the **real `scripts/install.sh --ci`** on a clean Ubuntu 24.04,
+then `test.sh` asserts the result — so the harness exercises the actual installer, not a copy.
+
 ```bash
 cd ~/.dotfiles/test
-docker compose build
+docker compose build      # runs install.sh --local --ci inside the image
 docker compose run --rm test
 ```
 
 Tests verify:
 - No CRLF line endings
 - Zsh loads without errors
-- Neovim version >= 0.11
+- Neovim >= 0.11.2 + LazyVim installs and config loads cleanly
 - Tmux starts correctly
 - All symlinks exist
-- Modern CLI tools installed
+- Modern CLI tools installed (eza, bat, fd, fzf, rg, zoxide)
+- Node + npm (for Mason LSP servers) and bun installed
 
 ## Update
 
