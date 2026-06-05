@@ -10,19 +10,9 @@ set -euo pipefail
 #   ./scripts/install.sh --remote  # Remote server (VPS) - Ctrl+B prefix
 # ─────────────────────────────────────────────
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-info() { echo -e "${GREEN}[INFO]${NC} $1"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
-
 # Repo root + shared symlink/stow helpers (stow_dotfiles, relink_claude_config, etc.)
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+source "$DOTFILES_DIR/scripts/lib/ui.sh"
 source "$DOTFILES_DIR/scripts/lib/links.sh"
 
 # ─────────────────────────────────────────────
@@ -161,6 +151,22 @@ ensure_sudo() {
   fi
 }
 
+run_remote_installer() {
+  local url="$1"
+  local shell_bin="$2"
+  local label="$3"
+
+  local tmpdir; tmpdir="$(mktemp -d)"
+
+  (
+    trap 'rm -rf "$tmpdir"' EXIT
+    curl -fsSLo "$tmpdir/install.sh" "$url"
+    "$shell_bin" "$tmpdir/install.sh"
+  )
+
+  info "$label installer completed"
+}
+
 install_linux() {
   info "Installing packages via apt..."
 
@@ -259,7 +265,7 @@ install_zoxide_linux() {
   fi
 
   info "Installing zoxide..."
-  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+  run_remote_installer "https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh" sh "zoxide"
 }
 
 install_tmux_linux() {
@@ -588,7 +594,7 @@ setup_claude_code() {
     fi
 
     info "Installing Claude Code..."
-    curl -fsSL https://claude.ai/install.sh | bash
+    run_remote_installer "https://claude.ai/install.sh" bash "Claude Code"
 
     if command -v claude &>/dev/null; then
       info "Claude Code installed successfully"
@@ -660,7 +666,7 @@ setup_workmux() {
   fi
 
   info "Installing workmux..."
-  curl -fsSL https://raw.githubusercontent.com/raine/workmux/main/scripts/install.sh | bash
+  run_remote_installer "https://raw.githubusercontent.com/raine/workmux/main/scripts/install.sh" bash "workmux"
 
   if command -v workmux &>/dev/null; then
     info "Workmux installed successfully"

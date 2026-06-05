@@ -2,13 +2,10 @@
  * shared.js - Shared utilities for Claude hooks
  */
 
-const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const os = require('os');
 
-// Shared constants
-const CONTEXT_LIMIT = 1000000;
 const STATE_DIR = path.join(os.homedir(), '.claude', 'state');
 
 /**
@@ -37,44 +34,8 @@ function getStatePaths(cwd = process.cwd()) {
   };
 }
 
-/**
- * Get token usage from transcript file
- * @param {string} transcriptPath - Path to transcript JSONL file
- * @returns {number|null} - Total tokens used, or null if unavailable
- */
-function getTokenUsage(transcriptPath) {
-  if (!transcriptPath || !fs.existsSync(transcriptPath)) return null;
-
-  try {
-    const lines = fs.readFileSync(transcriptPath, 'utf8').split('\n');
-    let usage = null;
-
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        const d = JSON.parse(line);
-        if (!d.isSidechain && d.message?.usage) {
-          usage = d.message.usage;
-        }
-      } catch { /* ignore parse errors */ }
-    }
-
-    if (usage) {
-      const toNum = (v) => Number(v) || 0;
-      return toNum(usage.input_tokens) +
-             toNum(usage.output_tokens) +
-             toNum(usage.cache_read_input_tokens) +
-             toNum(usage.cache_creation_input_tokens);
-    }
-  } catch { /* ignore */ }
-
-  return null;
-}
-
 module.exports = {
-  CONTEXT_LIMIT,
   STATE_DIR,
   getSessionKey,
-  getStatePaths,
-  getTokenUsage
+  getStatePaths
 };

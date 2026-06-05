@@ -31,11 +31,7 @@ const path = require('path');
 const os = require('os');
 
 const {
-  CONTEXT_LIMIT,
-  STATE_DIR,
-  getSessionKey,
-  getStatePaths,
-  getTokenUsage
+  getStatePaths
 } = require('../lib/shared');
 
 // Skip in CI environments

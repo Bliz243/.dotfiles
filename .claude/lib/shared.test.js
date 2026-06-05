@@ -7,15 +7,12 @@
 
 const assert = require('assert');
 const path = require('path');
-const fs = require('fs');
 const os = require('os');
 
 const {
-  CONTEXT_LIMIT,
   STATE_DIR,
   getSessionKey,
-  getStatePaths,
-  getTokenUsage
+  getStatePaths
 } = require('./shared');
 
 let passed = 0;
@@ -32,11 +29,6 @@ function test(name, fn) {
     failed++;
   }
 }
-
-// CONTEXT_LIMIT
-test('CONTEXT_LIMIT is 160000', () => {
-  assert.strictEqual(CONTEXT_LIMIT, 160000);
-});
 
 // STATE_DIR
 test('STATE_DIR points to ~/.claude/state', () => {
@@ -83,32 +75,6 @@ test('getStatePaths includes session key in filenames', () => {
   const paths = getStatePaths('/test/dir');
   assert.ok(paths.bypassTokenPath.includes(sessionKey));
   assert.ok(paths.lastBlockedPath.includes(sessionKey));
-});
-
-// getTokenUsage
-test('getTokenUsage returns null for missing file', () => {
-  const result = getTokenUsage('/nonexistent/file.jsonl');
-  assert.strictEqual(result, null);
-});
-
-test('getTokenUsage returns null for empty path', () => {
-  const result = getTokenUsage('');
-  assert.strictEqual(result, null);
-});
-
-test('getTokenUsage returns null for null path', () => {
-  const result = getTokenUsage(null);
-  assert.strictEqual(result, null);
-});
-
-// Test type coercion helper used in getTokenUsage
-test('Number() coercion handles strings correctly', () => {
-  const toNum = (v) => Number(v) || 0;
-  assert.strictEqual(toNum("123"), 123);
-  assert.strictEqual(toNum(456), 456);
-  assert.strictEqual(toNum(null), 0);
-  assert.strictEqual(toNum(undefined), 0);
-  assert.strictEqual(toNum("invalid"), 0);
 });
 
 // Summary

@@ -57,7 +57,7 @@ const highPatterns = [
 // MEDIUM severity - potentially dangerous but bypassable
 const mediumPatterns = [
   // Force delete (non-recursive) — match -f as a flag (after space), not inside filenames
-  { pattern: /rm\s+.*\s(-f|--force)\b/i, label: "force delete" },
+  { pattern: /\brm\s+(?:(?![;&|]).)*?(?:-[A-Za-z]*f[A-Za-z]*|--force)\b/i, label: "force delete" },
 
   // Git dangers
   { pattern: /git\s+reset\s+--hard/i, label: "hard reset" },
