@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-set -e
+# No `set -e`: this is a test runner — individual checks record pass/fail and the
+# suite must continue, then exit non-zero at the end if anything failed.
+
+# Match the real interactive shell's PATH: user-installed tools (zoxide, bun) land in
+# these dirs, which .zshrc adds but a bare bash test shell wouldn't otherwise see.
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
 
 echo "========================================"
 echo "  Dotfiles Test Suite"
@@ -14,10 +19,10 @@ test_result() {
     local result="$2"
     if [[ "$result" == "pass" ]]; then
         echo "✓ $name"
-        ((PASS++))
+        PASS=$((PASS + 1))
     else
         echo "✗ $name"
-        ((FAIL++))
+        FAIL=$((FAIL + 1))
     fi
 }
 
@@ -32,8 +37,10 @@ else
 fi
 
 # Test 2: Zsh loads without errors
+# TMUX=1 makes the tmux auto-attach guard think we're already inside tmux, so an
+# interactive zsh doesn't `exec tmux` (which would fail/hang without a real TTY).
 echo "Testing: Zsh initialization..."
-ZSH_OUTPUT=$(zsh -i -c 'echo "ZSH_OK"' 2>&1)
+ZSH_OUTPUT=$(TMUX=1 zsh -i -c 'echo "ZSH_OK"' 2>&1)
 if echo "$ZSH_OUTPUT" | grep -q "ZSH_OK"; then
     # Check for common error patterns
     if echo "$ZSH_OUTPUT" | grep -qiE "(command not found|no such file|error|parse error)"; then

@@ -279,7 +279,7 @@ install_tmux_linux() {
   TMUX_VERSION="3.4"
 
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   (
     cd "$tmpdir"
     curl -LO "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/tmux-${TMUX_VERSION}.tar.gz"
@@ -321,7 +321,7 @@ install_neovim_linux() {
   # Download and install — the rolling "stable" release always points at the latest
   # stable Neovim (currently 0.12.x), so no manual version bumps are needed.
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   (
     cd "$tmpdir"
     curl -LO "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-${ARCH}.tar.gz"
@@ -346,7 +346,7 @@ install_font_linux() {
   mkdir -p "$FONT_DIR"
 
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   (
     cd "$tmpdir"
     # Download from Nerd Fonts releases
@@ -395,7 +395,7 @@ install_lazygit_linux() {
   esac
 
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   (
     cd "$tmpdir"
     local ver
@@ -425,7 +425,7 @@ install_win32yank_wsl() {
   mkdir -p "$HOME/.local/bin"
 
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   (
     cd "$tmpdir"
     curl -fsSLo win32yank.zip \
@@ -449,7 +449,7 @@ install_node_linux() {
   info "Installing Node.js LTS (NodeSource)..."
   ensure_sudo
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   # Download then run (not piped to a shell) so the setup is auditable.
   if curl -fsSL https://deb.nodesource.com/setup_lts.x -o "$tmpdir/nodesource.sh" \
     && sudo -E bash "$tmpdir/nodesource.sh" \
@@ -473,7 +473,7 @@ install_bun_linux() {
   mkdir -p "$HOME/.bun/bin"
 
   local tmpdir; tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   if curl -fsSLo "$tmpdir/bun.zip" \
       "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-${arch}.zip" \
     && unzip -o "$tmpdir/bun.zip" -d "$tmpdir" >/dev/null; then
