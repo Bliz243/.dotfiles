@@ -29,6 +29,9 @@ source "$DOTFILES_DIR/scripts/lib/links.sh"
 # Parse arguments
 # ─────────────────────────────────────────────
 MACHINE_TYPE=""
+# CI/non-interactive: skips optional + interactive steps (claude/workmux/github/chsh)
+# so the installer itself can be exercised in the Docker test. Default off.
+CI="${CI:-0}"
 
 parse_args() {
   while [[ $# -gt 0 ]]; do
@@ -41,6 +44,10 @@ parse_args() {
         MACHINE_TYPE="remote"
         shift
         ;;
+      --ci|--non-interactive)
+        CI=1
+        shift
+        ;;
       --help|-h)
         echo "Usage: ./scripts/install.sh [OPTIONS]"
         echo ""
@@ -50,6 +57,9 @@ parse_args() {
         echo ""
         echo "  --remote    Configure for remote server (VPS)"
         echo "              Uses Ctrl+B prefix, auto-attach only in SSH sessions"
+        echo ""
+        echo "  --ci        Non-interactive: install core only, skip optional/"
+        echo "              interactive steps (Claude/workmux/GitHub/chsh). Used by tests."
         echo ""
         echo "  --help      Show this help message"
         echo ""
@@ -134,6 +144,10 @@ install_macos() {
   # Install Nerd Font for terminal
   info "Installing JetBrainsMono Nerd Font..."
   brew install --cask font-jetbrains-mono-nerd-font 2>/dev/null || warn "Font install failed - install manually from nerdfonts.com"
+
+  # Alacritty terminal (config is stowed from .config/alacritty)
+  info "Installing Alacritty..."
+  brew install --cask alacritty 2>/dev/null || warn "Alacritty install failed - install manually from alacritty.org"
 }
 
 # ─────────────────────────────────────────────
@@ -154,9 +168,9 @@ install_linux() {
 
   sudo apt update
   sudo apt install -y \
-    zsh git curl stow \
+    zsh git curl wget stow unzip gnupg ca-certificates \
     fzf ripgrep fd-find \
-    build-essential \
+    build-essential fontconfig \
     libevent-dev ncurses-dev bison
 
   # chromium for playwright-cli browser automation — optional, and the package name/availability
@@ -200,6 +214,22 @@ install_linux() {
 
   # bun — default JS package manager for projects
   install_bun_linux
+
+  # Alacritty terminal (local/desktop only; pointless + heavy on a headless VPS or CI)
+  install_alacritty_linux
+}
+
+install_alacritty_linux() {
+  # GUI terminal — config is stowed from .config/alacritty. Skip on headless/remote/CI.
+  [[ "$CI" == "1" || "$MACHINE_TYPE" == "remote" ]] && return 0
+  if command -v alacritty &>/dev/null; then
+    info "Alacritty already installed"
+    return
+  fi
+  info "Installing Alacritty..."
+  # Available in apt universe on 24.04+; on older releases it needs a PPA/cargo, so never fatal.
+  sudo apt install -y alacritty 2>/dev/null \
+    || warn "Alacritty not installed (not in apt on this release) — install manually or via cargo"
 }
 
 install_eza_linux() {
@@ -326,8 +356,8 @@ install_font_linux() {
     unzip -o JetBrainsMono.zip -d "$FONT_DIR/JetBrainsMono" >/dev/null 2>&1
   )
 
-  # Refresh font cache
-  fc-cache -fv "$FONT_DIR" >/dev/null 2>&1
+  # Refresh font cache (non-fatal — a cache refresh failure shouldn't abort the install)
+  fc-cache -fv "$FONT_DIR" >/dev/null 2>&1 || true
 
   info "JetBrainsMono Nerd Font installed"
 }
@@ -463,8 +493,8 @@ install_bun_linux() {
 post_install() {
   info "Running post-install setup..."
 
-  # Set zsh as default shell
-  if [[ "$SHELL" != */zsh ]]; then
+  # Set zsh as default shell (skipped in CI — chsh prompts for a password)
+  if [[ "$CI" != "1" && "$SHELL" != */zsh ]]; then
     info "Setting zsh as default shell..."
     chsh -s "$(which zsh)" || warn "Could not change shell. Run: chsh -s \$(which zsh)"
   fi
@@ -536,6 +566,8 @@ setup_claude_config() {
 # Claude Code Installation (Optional)
 # ─────────────────────────────────────────────
 setup_claude_code() {
+  [[ "$CI" == "1" ]] && { info "CI: skipping Claude Code install"; return; }
+
   local claude_installed=false
 
   # Check if already installed
@@ -607,6 +639,8 @@ setup_codex_config() {
 # Workmux Installation (Optional)
 # ─────────────────────────────────────────────
 setup_workmux() {
+  [[ "$CI" == "1" ]] && { info "CI: skipping workmux install"; return; }
+
   # Check if already installed
   if command -v workmux &>/dev/null; then
     info "Workmux already installed"
@@ -649,6 +683,8 @@ setup_workmux() {
 # GitHub/SSH Setup (Interactive)
 # ─────────────────────────────────────────────
 setup_github() {
+  [[ "$CI" == "1" ]] && { info "CI: skipping GitHub setup"; return; }
+
   # Skip if gh not installed
   if ! command -v gh &>/dev/null; then
     warn "GitHub CLI not installed, skipping GitHub setup"

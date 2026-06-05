@@ -3,73 +3,36 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm-256color
 
-# Install base packages
+# Minimal bootstrap only — everything else is installed by scripts/install.sh itself,
+# so this image exercises the REAL installer rather than a hand-maintained copy of it.
 RUN apt-get update && apt-get install -y \
-    zsh \
-    git \
+    sudo \
+    ca-certificates \
     curl \
-    wget \
-    stow \
-    tmux \
-    fzf \
-    ripgrep \
-    fd-find \
-    bat \
-    unzip \
-    build-essential \
-    python3 \
-    python3-pip \
+    git \
     locales \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up locale
+# Locale
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-# Install eza
-RUN wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list \
-    && apt-get update \
-    && apt-get install -y eza \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install zoxide
-RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
-
-# Install Neovim (architecture-aware; LazyVim requires >= 0.11.2)
-RUN ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then \
-        NVIM_ARCH="linux-x86_64"; \
-    elif [ "$ARCH" = "aarch64" ]; then \
-        NVIM_ARCH="linux-arm64"; \
-    else \
-        echo "Unsupported architecture: $ARCH" && exit 1; \
-    fi && \
-    curl -LO "https://github.com/neovim/neovim/releases/download/stable/nvim-${NVIM_ARCH}.tar.gz" && \
-    tar -xzf "nvim-${NVIM_ARCH}.tar.gz" -C /opt/ && \
-    ln -s "/opt/nvim-${NVIM_ARCH}/bin/nvim" /usr/local/bin/nvim && \
-    rm "nvim-${NVIM_ARCH}.tar.gz"
-
-# Create symlink for bat (called batcat on Ubuntu)
-RUN ln -s /usr/bin/batcat /usr/local/bin/bat
-
-# Create test user
-RUN useradd -m -s /bin/zsh testuser
+# Test user with passwordless sudo (install.sh needs sudo for apt/NodeSource)
+RUN useradd -m -s /bin/zsh testuser \
+    && echo "testuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/testuser \
+    && chmod 0440 /etc/sudoers.d/testuser
 USER testuser
 WORKDIR /home/testuser
 
-# Copy dotfiles
+# Bring in the dotfiles and run the actual installer non-interactively.
+# --ci skips the optional/interactive steps (Claude/workmux/GitHub/chsh); everything
+# else — apt packages, node/bun, nvim, stow, plugin sync — runs exactly as on a real box.
 COPY --chown=testuser:testuser . /home/testuser/.dotfiles/
-
-# Run stow (excluding test directory)
 WORKDIR /home/testuser/.dotfiles
-RUN stow . --target=/home/testuser --ignore=test --ignore=scripts --ignore=README.md --ignore=LICENSE
-
-# Install tmux plugin manager
-RUN git clone https://github.com/tmux-plugins/tpm /home/testuser/.tmux/plugins/tpm
+RUN ./scripts/install.sh --local --ci
 
 WORKDIR /home/testuser
 
-# Default command runs tests
+# Default command runs the assertion suite against the installed environment
 CMD ["/home/testuser/.dotfiles/test/test.sh"]

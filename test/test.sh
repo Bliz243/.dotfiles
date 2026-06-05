@@ -135,6 +135,22 @@ else
     test_result "Modern CLI tools installed" "fail"
 fi
 
+# Test 10: Node + npm (required by Mason for npm-based LSP servers)
+echo "Testing: Node.js toolchain..."
+if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+    test_result "Node + npm installed ($(node -v))" "pass"
+else
+    test_result "Node + npm installed" "fail"
+fi
+
+# Test 11: bun (default JS package manager; installed to ~/.bun/bin, not default PATH)
+echo "Testing: bun..."
+if command -v bun >/dev/null 2>&1 || [[ -x "$HOME/.bun/bin/bun" ]]; then
+    test_result "bun installed" "pass"
+else
+    test_result "bun installed" "fail"
+fi
+
 echo ""
 echo "========================================"
 echo "  Results: $PASS passed, $FAIL failed"
