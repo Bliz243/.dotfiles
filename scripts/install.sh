@@ -442,22 +442,32 @@ install_win32yank_wsl() {
 }
 
 install_node_linux() {
-  # System Node (LTS) exists purely to feed Mason: the LSP servers for the enabled
-  # lang extras (typescript, tailwind, json, yaml, docker, basedpyright) are npm
-  # packages Mason installs via `npm`. Project JS uses bun, so a single LTS is ideal.
-  # NodeSource (not Ubuntu's apt) provides a current LTS, always on PATH for any
-  # process — including post_install's headless `Lazy! sync`.
+  # System Node exists purely to feed Mason: the LSP servers for the enabled lang
+  # extras (typescript, tailwind, json, yaml, docker, basedpyright) are npm packages
+  # Mason installs via `npm`. Project JS uses bun, so a single system Node is ideal.
+  # NodeSource keeps it on PATH for every process — including post_install's headless
+  # `Lazy! sync` and Vite/SvelteKit subprocesses that need a modern Node. No nvm: a
+  # shell-function version manager isn't visible to Mason's non-interactive npm spawns.
+  # Pinned to an explicit major (not setup_lts.x) so the version is deterministic and
+  # the guard below can detect a stale install and upgrade it.
+  local target_major=24
+
   if command -v node &>/dev/null; then
-    info "Node already installed ($(node -v))"
-    return
+    local current; current="$(node -v)"; current="${current#v}"
+    if (( ${current%%.*} >= target_major )); then
+      info "Node already current ($(node -v))"
+      return
+    fi
+    info "Node $(node -v) is below v${target_major} — upgrading..."
+  else
+    info "Installing Node.js ${target_major} (NodeSource)..."
   fi
 
-  info "Installing Node.js LTS (NodeSource)..."
   ensure_sudo
   local tmpdir; tmpdir="$(mktemp -d)"
   trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
   # Download then run (not piped to a shell) so the setup is auditable.
-  if curl -fsSL https://deb.nodesource.com/setup_lts.x -o "$tmpdir/nodesource.sh" \
+  if curl -fsSL "https://deb.nodesource.com/setup_${target_major}.x" -o "$tmpdir/nodesource.sh" \
     && sudo -E bash "$tmpdir/nodesource.sh" \
     && sudo apt install -y nodejs; then
     info "Node $(node -v) / npm $(npm -v) installed"

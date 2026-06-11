@@ -24,8 +24,9 @@ for file in ~/.zsh/*.zsh(N); do
   source "$file"
 done
 
-# Node is installed system-wide (NodeSource LTS) for editor/LSP tooling; project JS
-# uses bun (below). No nvm — install.sh provisions both.
+# Node is installed system-wide (NodeSource, pinned major in install.sh) for editor/LSP
+# tooling and Vite/SvelteKit subprocesses; project JS uses bun (below). No nvm — a
+# shell-function version manager isn't visible to Mason's non-interactive npm spawns.
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
