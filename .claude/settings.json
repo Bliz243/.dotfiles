@@ -19,6 +19,7 @@
       "Read(**/*credentials*.json)"
     ]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -47,13 +48,13 @@
     "command": "node ~/.claude/statusline.js"
   },
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true
   },
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized"
 }

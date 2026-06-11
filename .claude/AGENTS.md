@@ -45,8 +45,6 @@ Follow the spec-first workflow:
 2. **Plan** - Gap analysis, create implementation plan with prioritized tasks
 3. **Build** - Implement from plan using TDD, commit, update plan
 
-If project has a `quality-loop` skill or Ralph workflow, those own TDD — don't layer `superpowers:test-driven-development` on top. Use `superpowers:test-driven-development` only for standalone tasks/bug fixes outside a plan.
-
 For multi-step tasks, state each step with its verification check:
 
 ```text

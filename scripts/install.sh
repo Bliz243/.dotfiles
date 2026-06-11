@@ -615,17 +615,6 @@ setup_claude_code() {
       return
     fi
   fi
-
-  # Remind about superpowers plugin
-  if [[ "$claude_installed" == true ]] && [[ ! -d ~/.claude/plugins/marketplaces/superpowers-marketplace ]]; then
-    echo ""
-    info "To complete setup, install superpowers from within Claude Code:"
-    echo ""
-    echo "  1. Start Claude Code:  claude"
-    echo "  2. Add marketplace:    /plugin marketplace add obra/superpowers-marketplace"
-    echo "  3. Install plugin:     /plugin install superpowers@superpowers-marketplace"
-    echo ""
-  fi
 }
 
 # ─────────────────────────────────────────────
@@ -635,18 +624,6 @@ setup_codex_config() {
   info "Setting up Codex CLI configuration..."
 
   [[ -d "$DOTFILES_DIR/.codex" ]] || { warn "No Codex config in dotfiles, skipping"; return; }
-
-  # Bootstrap: clone superpowers once (network); relinking is handled by the lib.
-  local codex_dir="$HOME/.codex"
-  if [[ ! -d "$codex_dir/superpowers" ]]; then
-    info "Cloning superpowers for Codex..."
-    mkdir -p "$codex_dir"
-    if git clone https://github.com/obra/superpowers.git "$codex_dir/superpowers" 2>/dev/null; then
-      info "Superpowers cloned"
-    else
-      warn "Failed to clone superpowers. Install manually: git clone https://github.com/obra/superpowers.git ~/.codex/superpowers"
-    fi
-  fi
 
   relink_codex_config
 }

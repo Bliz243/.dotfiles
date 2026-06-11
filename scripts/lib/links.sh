@@ -83,7 +83,6 @@ relink_claude_config() {
 }
 
 # Relink Codex config into ~/.codex and ~/.agents/skills (idempotent).
-# Does NOT clone superpowers (that is a one-time bootstrap step in install.sh).
 relink_codex_config() {
   local dotfiles_codex="$DOTFILES_DIR/.codex"
   local dotfiles_claude="$DOTFILES_DIR/.claude"
@@ -102,9 +101,6 @@ relink_codex_config() {
   for skill in "$dotfiles_codex/skills/"*/; do
     [[ -d "$skill" ]] && link_file "$skill" "$agents_dir/$(basename "$skill")"
   done
-
-  # superpowers skills (cloned by install.sh bootstrap)
-  [[ -d "$codex_dir/superpowers/skills" ]] && link_file "$codex_dir/superpowers/skills" "$agents_dir/superpowers"
 
   # config.toml is machine-specific (project paths, MCP IPs): copy from template once, never overwrite.
   if [[ ! -f "$codex_dir/config.toml" && -f "$dotfiles_codex/config.toml.example" ]]; then

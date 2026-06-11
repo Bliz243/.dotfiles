@@ -3,43 +3,6 @@
   "description": "Global skill activation rules. Projects can extend with their own skill-rules.json.",
 
   "skills": {
-    "superpowers:brainstorming": {
-      "type": "workflow",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Design before coding - explore requirements and approaches",
-      "promptTriggers": {
-        "patterns": [
-          "(let'?s\\s+)?(build|implement|create|add|develop)\\s+(a\\s+)?(new\\s+)?(feature|component|system|module|service)",
-          "(think\\s+(about|through)|consider\\s+(the|this|alternatives?)|should\\s+we|what\\s+if)",
-          "(options?|approach(es)?|best\\s+way|how\\s+should|evaluate|compare|trade-?offs?)",
-          "(architect(ure)?|design\\s+(the|a|this)|structure|reorganize|refactor)"
-        ]
-      },
-      "activation": {
-        "icon": "*",
-        "skill": "superpowers:brainstorming",
-        "message": "Design before coding"
-      }
-    },
-
-    "superpowers:systematic-debugging": {
-      "type": "workflow",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Structured debugging approach",
-      "promptTriggers": {
-        "patterns": [
-          "(bug|fix|error|issue|broken|not working|fails?|debug|troubleshoot)"
-        ]
-      },
-      "activation": {
-        "icon": "*",
-        "skill": "superpowers:systematic-debugging",
-        "message": "Structured debugging"
-      }
-    },
-
     "explore-agent": {
       "type": "workflow",
       "enforcement": "suggest",
