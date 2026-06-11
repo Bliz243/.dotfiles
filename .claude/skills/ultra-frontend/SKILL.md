@@ -1,6 +1,6 @@
 ---
 name: ultra-frontend
-description: "MUST use when building ANY frontend UI - components, pages, layouts, dashboards, landing pages, forms, cards, modals, or ANY styling/design work. Creates distinctive, production-grade interfaces that avoid generic AI aesthetics. If the task involves HTML, CSS, React, Vue, Svelte, or visual design, USE THIS SKILL."
+description: "Creative/marketing frontend ONLY — landing pages, showcases, portfolios, standalone HTML/CSS, or when explicitly asked for bold/distinctive design. Creates distinctive, production-grade interfaces that avoid generic AI aesthetics. NOT for app UI (dashboards, forms, settings, CRUD) — ui-design owns those."
 ---
 
 # Ultra Frontend

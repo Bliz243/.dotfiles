@@ -3,9 +3,7 @@
  * skill-monitor.js - Config-driven skill activation hook
  *
  * Hook responsibilities:
- * - Ultrathink injection
- * - Session orientation (detect active work)
- * - Token monitoring with tiered warnings
+ * - "yert" bypass-token creation for command-guard
  * - Skill activation from skill-rules.json (blocking, suggestions, reminders)
  *
  * Loads rules from:
