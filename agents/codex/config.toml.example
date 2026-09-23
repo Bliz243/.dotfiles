@@ -1,0 +1,27 @@
+# Codex CLI configuration template.
+# scripts/install.sh copies this to ~/.codex/config.toml on first install and never overwrites it.
+# Put machine-specific values (trusted project paths, private MCP servers) in ~/.codex/config.toml only.
+
+model = "gpt-6-astra"
+model_reasoning_effort = "max"
+
+[notice]
+hide_rate_limit_model_nudge = true
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
+# ─────────────────────────────────────────────
+# Machine-specific (uncomment and edit per machine)
+# ─────────────────────────────────────────────
+
+# Trusted project directories (absolute paths):
+# [projects."/home/you/some-project"]
+# trust_level = "trusted"
+
+# MCP servers:
+# [mcp_servers.example]
+# url = "http://127.0.0.1:8080/mcp"
+#
+# [mcp_servers.example.tools.some_tool]
+# approval_mode = "approve"

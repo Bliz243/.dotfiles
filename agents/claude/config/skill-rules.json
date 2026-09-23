@@ -1,0 +1,5 @@
+{
+  "version": "2.0",
+  "description": "Global skill activation rules, merged under each project's .claude/config/skill-rules.json. Empty on purpose: skill descriptions already trigger skills natively, so rules belong at project level for project invariants.",
+  "skills": {}
+}

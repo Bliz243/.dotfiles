@@ -1,0 +1,65 @@
+# workmux project configuration
+# Parallel AI agent development with git worktrees + tmux
+# Copy to project root as .workmux.yaml
+
+#-------------------------------------------------------------------------------
+# Git
+#-------------------------------------------------------------------------------
+
+main_branch: main
+merge_strategy: squash
+
+#-------------------------------------------------------------------------------
+# Naming & Paths
+#-------------------------------------------------------------------------------
+
+# Use Nerd Font git branch icon
+window_prefix: "\uf418 "
+
+#-------------------------------------------------------------------------------
+# Tmux
+#-------------------------------------------------------------------------------
+
+# Two-pane layout: Claude agent + shell
+panes:
+  - command: <agent>
+    focus: true
+  - split: horizontal
+
+#-------------------------------------------------------------------------------
+# Agent & AI
+#-------------------------------------------------------------------------------
+
+agent: claude
+
+#-------------------------------------------------------------------------------
+# Hooks
+#-------------------------------------------------------------------------------
+
+# Commands run after worktree creation
+post_create:
+  - bun install
+  # - bunx prisma generate   # uncomment if the project uses Prisma
+
+#-------------------------------------------------------------------------------
+# Files
+#-------------------------------------------------------------------------------
+
+files:
+  # Copy environment files (each worktree needs its own)
+  copy:
+    - .env
+    - .env.local
+    # Claude Code configuration
+    - .claude/settings.json
+    - .claude/settings.local.json
+    - .claude/agents
+    - .claude/config
+    - .claude/hooks
+    - .claude/skills
+    - .claude/statusline.js
+
+  # NOTE: each worktree installs its own deps via the post_create hook.
+  # bun uses a global cache (~/.bun/install/cache), so installs are fast and
+  # node_modules doesn't need symlinking between worktrees.
+  # NOTE: .claude/state/ is NOT copied - each worktree has its own agent state

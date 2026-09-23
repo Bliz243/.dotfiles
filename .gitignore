@@ -1,0 +1,13 @@
+# Local overrides (machine-specific)
+.zsh/99-local.zsh
+.gitconfig.local
+
+# Agent tools' project-local files if a session runs in this repo (machine-specific;
+# user-level runtime config lives in ~/.claude and ~/.codex, never here)
+.claude/
+.codex/
+
+# Playwright CLI session artifacts
+.playwright-cli/
+
+# OS/editor cruft (.DS_Store, *.swp, *~, ...) is covered by .gitignore_global

@@ -1,0 +1,21 @@
+# ~/.zshrc.local — machine-specific overrides (NOT tracked in git).
+#
+# install.sh auto-creates this file with the right tmux settings for --local/--remote,
+# so you usually don't need to copy this. It's a reference for what else you can put here.
+#
+# Settings this setup recognises (full tmux docs live in .zsh/01-zinit.zsh):
+#   MACHINE_TYPE      "local" | "remote"   — "remote" keeps a paste-safe tmux escape-time
+#   TMUX_PREFIX       "C-a" (local) | "C-b" (remote)
+#   TMUX_AUTO_ATTACH  "true" | "false" | "ssh-only" | "local"
+#   TMUX_SESSION      session name (default "default") — set per terminal profile for
+#                     independent side-by-side sessions
+#
+# Example:
+#   export MACHINE_TYPE="local"
+#   export TMUX_PREFIX="C-a"
+#   TMUX_AUTO_ATTACH="true"
+#
+# Other machine-specific bits you might add:
+#   export PATH="$HOME/bin:$PATH"
+#   [[ -f ~/.secrets ]] && source ~/.secrets        # API keys, tokens
+#   alias work='cd ~/projects'

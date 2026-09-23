@@ -1,0 +1,247 @@
+# Aliases and shell functions
+
+# ─────────────────────────────────────────────
+# Modern CLI Replacements (with fallbacks)
+# ─────────────────────────────────────────────
+
+# eza/bat replace ls/cat in interactive shells only; agent shells keep the standard tools
+if [[ -z "${_agent_shell:-}" ]]; then
+  # eza (ls replacement)
+  if command -v eza &>/dev/null; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -la --icons --group-directories-first'
+    alias la='eza -a --icons --group-directories-first'
+    alias lt='eza --tree --icons --level=2'
+    alias tree='eza --tree --icons'
+  else
+    alias ls='ls --color=auto'
+    alias ll='ls -la'
+    alias la='ls -a'
+  fi
+
+  # bat (cat replacement)
+  if command -v bat &>/dev/null; then
+    alias cat='bat --style=auto'
+  elif command -v batcat &>/dev/null; then
+    alias cat='batcat --style=auto'
+    alias bat='batcat'
+  fi
+fi
+
+# fd (find replacement)
+if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
+  alias fd='fdfind'
+fi
+
+# zoxide (smarter cd) is initialized at the END of ~/.zshrc (ordering matters for _ZO_DOCTOR)
+
+# fzf - load key bindings and completion
+if command -v fzf &>/dev/null; then
+  # Linux (apt)
+  [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+  # macOS Homebrew (Apple Silicon)
+  [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+  # macOS Homebrew (Intel)
+  [[ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]] && source /usr/local/opt/fzf/shell/key-bindings.zsh
+  # User install
+  [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+fi
+
+# ─────────────────────────────────────────────
+# Editor
+# ─────────────────────────────────────────────
+alias v='nvim'
+alias vim='nvim'
+alias vi='nvim'
+alias e='$EDITOR'
+
+# ─────────────────────────────────────────────
+# Claude Code
+# ─────────────────────────────────────────────
+# Auto mode: a classifier reviews risky actions instead of prompting for each one
+alias ccd='claude --permission-mode auto'
+
+# ─────────────────────────────────────────────
+# Dotfiles
+# ─────────────────────────────────────────────
+# Pull latest dotfiles and apply only what changed (restow + relink + plugin sync)
+alias dotsync='$HOME/.dotfiles/scripts/sync.sh --pull'
+
+# ─────────────────────────────────────────────
+# Workmux (git worktrees + tmux)
+# ─────────────────────────────────────────────
+alias wm='workmux'
+
+# ─────────────────────────────────────────────
+# Git Shortcuts
+# ─────────────────────────────────────────────
+alias g='git'
+alias gs='git status'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias ga='git add'
+alias gaa='git add --all'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gca='git commit --amend'
+alias gp='git push'
+alias gpf='git push --force-with-lease'
+alias gpl='git pull'
+alias gl='git log --oneline -20'
+alias glo='git log --oneline --graph --all'
+alias gb='git branch'
+alias gco='git checkout'
+alias gsw='git switch'
+alias gst='git stash'
+alias gstp='git stash pop'
+alias gcp='git cherry-pick'
+alias grb='git rebase'
+alias grbi='git rebase -i'
+
+# ─────────────────────────────────────────────
+# Docker
+# ─────────────────────────────────────────────
+alias d='docker'
+alias dc='docker compose'
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias di='docker images'
+alias dex='docker exec -it'
+alias dlog='docker logs -f'
+alias dprune='docker system prune -af'
+
+# ─────────────────────────────────────────────
+# Kubernetes (if available)
+# ─────────────────────────────────────────────
+if command -v kubectl &>/dev/null; then
+  alias k='kubectl'
+  alias kgp='kubectl get pods'
+  alias kgs='kubectl get services'
+  alias kgd='kubectl get deployments'
+  alias kctx='kubectl config current-context'
+  alias kns='kubectl config set-context --current --namespace'
+fi
+
+# ─────────────────────────────────────────────
+# Directory Navigation
+# ─────────────────────────────────────────────
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# ─────────────────────────────────────────────
+# Common Shortcuts
+# ─────────────────────────────────────────────
+alias c='clear'
+alias h='history'
+alias q='exit'
+alias reload='source ~/.zshrc'
+
+# Better defaults (interactive only: they change output and flags agents rely on)
+if [[ -z "${_agent_shell:-}" ]]; then
+  alias df='df -h'
+  alias du='du -h'
+  alias free='free -h'
+  alias mkdir='mkdir -pv'
+  alias wget='wget -c'
+fi
+
+# ─────────────────────────────────────────────
+# Safety
+# ─────────────────────────────────────────────
+# Note: Removed -i aliases (rm, mv, cp) because they hang in Claude Code
+# Claude Code guards dangerous operations itself (auto mode classifier + permission rules)
+
+# ─────────────────────────────────────────────
+# System Info
+# ─────────────────────────────────────────────
+alias myip='curl -s ifconfig.me'
+alias localip="hostname -I 2>/dev/null | awk '{print \$1}' || ipconfig getifaddr en0"
+alias ports='netstat -tulanp 2>/dev/null || lsof -i -P'
+
+# ─────────────────────────────────────────────
+# Utility Functions
+# ─────────────────────────────────────────────
+
+# Create directory and cd into it
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# Extract various archive formats
+extract() {
+  if [[ -f "$1" ]]; then
+    case "$1" in
+      *.tar.bz2) tar xjf "$1" ;;
+      *.tar.gz)  tar xzf "$1" ;;
+      *.tar.xz)  tar xJf "$1" ;;
+      *.bz2)     bunzip2 "$1" ;;
+      *.gz)      gunzip "$1" ;;
+      *.tar)     tar xf "$1" ;;
+      *.tbz2)    tar xjf "$1" ;;
+      *.tgz)     tar xzf "$1" ;;
+      *.zip)     unzip "$1" ;;
+      *.Z)       uncompress "$1" ;;
+      *.7z)      7z x "$1" ;;
+      *.rar)     unrar x "$1" ;;
+      *)         echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# Quick file backup
+backup() {
+  cp "$1"{,.backup-$(date +%Y%m%d-%H%M%S)}
+}
+
+# Quick HTTP server in current directory
+serve() {
+  local port="${1:-8000}"
+  python3 -m http.server "$port"
+}
+
+# Weather
+weather() {
+  curl -s "wttr.in/${1:-}"
+}
+
+# Cheat sheet
+cheat() {
+  curl -s "cheat.sh/$1"
+}
+
+# ─────────────────────────────────────────────
+# WSL Integration
+# ─────────────────────────────────────────────
+if command -v explorer.exe &>/dev/null; then
+  alias explorer='explorer.exe'
+fi
+
+# ─────────────────────────────────────────────
+# Tmux Integration
+# ─────────────────────────────────────────────
+
+# Set tmux pane title to current command or directory
+if [[ -n "$TMUX" ]]; then
+  # Set pane title via escape sequence
+  _tmux_set_title() {
+    printf '\033]2;%s\033\\' "$1"
+  }
+
+  # Before command runs: show the command
+  preexec() {
+    _tmux_set_title "${1[1,40]}"
+  }
+
+  # After command finishes: show current directory
+  precmd() {
+    local dir="${PWD##*/}"  # Last component of path
+    [[ "$PWD" == "$HOME" ]] && dir="~"
+    [[ -z "$dir" ]] && dir="/"
+    _tmux_set_title "$dir"
+  }
+fi

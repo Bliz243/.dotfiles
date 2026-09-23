@@ -1,0 +1,61 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # weekly: catch upstream installer breakage
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    env:
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # gitleaks scans the full history
+
+      - name: Install gitleaks (checksum-verified) and zsh
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLO "$base/$tarball"
+          curl -fsSLO "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          grep " $tarball\$" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" | sha256sum -c -
+          tar -xzf "$tarball" gitleaks
+          sudo install gitleaks /usr/local/bin
+          sudo apt-get install -y --no-install-recommends zsh
+
+      - name: Public-repo check (secrets, emails, IPs, home paths)
+        run: node scripts/check-public.js
+
+      - name: Shell scripts
+        run: |
+          bash -n scripts/*.sh scripts/lib/*.sh test/test.sh .githooks/pre-push
+          zsh -n .zshrc .zsh/*.zsh
+          shellcheck -x -S warning scripts/*.sh scripts/lib/*.sh test/test.sh .githooks/pre-push
+
+      - name: Node scripts and JSON config
+        run: |
+          for f in scripts/check-public.js agents/claude/statusline.js agents/claude/hooks/*.js agents/skills/*/scripts/*.js; do
+            node --check "$f"
+          done
+          for f in agents/claude/settings.json agents/claude/config/*.json; do
+            node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' "$f"
+          done
+
+  install:
+    # The real installer on a clean Ubuntu 24.04, then the assertions in test/test.sh
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build (runs scripts/install.sh --local --ci)
+        run: docker compose -f test/docker-compose.yml build
+      - name: Test
+        run: docker compose -f test/docker-compose.yml run --rm -T test

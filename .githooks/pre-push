@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Blocks a push that would publish secrets or private data (see scripts/check-public.js).
+# Enabled per clone by scripts/install.sh and scripts/sync.sh (core.hooksPath = .githooks).
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+zero="0000000000000000000000000000000000000000"
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  [[ "$local_sha" == "$zero" ]] && continue          # deleting a remote branch publishes nothing
+  if [[ "$remote_sha" == "$zero" ]]; then
+    node "$root/scripts/check-public.js" "$local_sha" --not --remotes
+  else
+    node "$root/scripts/check-public.js" "$remote_sha..$local_sha"
+  fi
+done

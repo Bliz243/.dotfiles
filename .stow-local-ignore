@@ -1,0 +1,26 @@
+# Files and directories to ignore when stowing
+
+# Installation and documentation
+scripts
+README.md
+LICENSE
+\.workmux\.yaml\.example
+\.zshrc\.local\.example
+
+# Test environment
+test
+
+# Git files (stow handles these specially anyway), repo hooks, CI
+\.git
+\.gitignore
+\.githooks
+\.github
+
+# Agent config: linked into ~/.claude, ~/.codex, ~/.agents by scripts/lib/links.sh.
+# AGENTS.md must never be stowed: ~/AGENTS.md would apply to every project under ~.
+agents
+AGENTS\.md
+
+# Project-local files agent tools may create in this repo
+\.claude
+\.codex
