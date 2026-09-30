@@ -42,10 +42,10 @@ jobs:
 
       - name: Node scripts and JSON config
         run: |
-          for f in scripts/check-public.js agents/claude/statusline.js agents/claude/hooks/*.js agents/skills/*/scripts/*.js; do
+          for f in scripts/check-public.js agents/claude/statusline.js agents/skills/*/scripts/*.js; do
             node --check "$f"
           done
-          for f in agents/claude/settings.json agents/claude/config/*.json; do
+          for f in agents/claude/settings.json; do
             node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' "$f"
           done
 

@@ -9,7 +9,6 @@
     "pr": ""
   },
   "permissions": {
-    "defaultMode": "auto",
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
@@ -33,21 +32,10 @@
       "Read(~/.netrc)",
       "Read(~/.git-credentials)",
       "Read(~/.npmrc)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "model": "opus[1m]",
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/hooks/skill-monitor.js"
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "node ~/.claude/statusline.js"
@@ -56,7 +44,7 @@
     "typescript-lsp@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": false,
     "feature-dev@claude-plugins-official": true,
-    "codex@openai-codex": true
+    "codex@openai-codex": false
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -67,17 +55,6 @@
     }
   },
   "effortLevel": "high",
-  "modelSettings": {
-    "claude-opus-5": {
-      "effortLevel": "xhigh"
-    },
-    "claude-fable-5-1": {
-      "effortLevel": "xhigh"
-    },
-    "claude-opus-5-5": {
-      "effortLevel": "xhigh"
-    }
-  },
   "autoCompactWindow": 600000,
   "askUserQuestionTimeout": "10m",
   "autoUpdatesChannel": "latest",
@@ -85,5 +62,6 @@
   "theme": "dark-daltonized",
   "autoCompactEnabled": true,
   "autoContinueAtUsageLimit": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "skipDangerousModePermissionPrompt": true
 }

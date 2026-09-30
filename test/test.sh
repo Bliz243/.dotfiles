@@ -161,8 +161,7 @@ fi
 # Test 12: Agent config linked for Claude Code and Codex, and never stowed into ~
 echo "Testing: Agent config links..."
 AGENT_OK=true
-for link in .claude/AGENTS.md .claude/CLAUDE.md .claude/settings.json .claude/statusline.js \
-            .claude/hooks/skill-monitor.js .codex/AGENTS.md; do
+for link in .claude/AGENTS.md .claude/CLAUDE.md .claude/settings.json .claude/statusline.js .codex/AGENTS.md; do
     [[ -L ~/$link && -e ~/$link ]] || { echo "  Missing or dangling: ~/$link"; AGENT_OK=false; }
 done
 for skill in ~/.dotfiles/agents/skills/*/; do
@@ -177,14 +176,13 @@ else
     test_result "Agent config linked" "fail"
 fi
 
-# Test 13: Claude Code settings parse and the hook + status line run
-echo "Testing: Claude Code settings, hook, status line..."
+# Test 13: Claude Code settings parse and the status line runs
+echo "Testing: Claude Code settings, status line..."
 if node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' ~/.claude/settings.json 2>/dev/null \
-   && echo '{"prompt":"hello"}' | node ~/.claude/hooks/skill-monitor.js | grep -q hookSpecificOutput \
    && echo '{}' | node ~/.claude/statusline.js | grep -q '%'; then
-    test_result "Claude Code settings, hook, status line" "pass"
+    test_result "Claude Code settings, status line" "pass"
 else
-    test_result "Claude Code settings, hook, status line" "fail"
+    test_result "Claude Code settings, status line" "fail"
 fi
 
 # Test 14: Agent shells (Claude Code, Codex) keep standard commands and skip tmux;

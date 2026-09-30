@@ -79,7 +79,7 @@ relink_claude_config() {
 
   [[ -d "$claude_src" ]] || { warn "No Claude config in dotfiles, skipping"; return; }
 
-  mkdir -p "$claude_dir/hooks" "$claude_dir/config" "$claude_dir/skills" "$claude_dir/agents"
+  mkdir -p "$claude_dir/skills" "$claude_dir/agents"
   cleanup_dangling_symlinks "$claude_dir/skills" "$claude_dir/agents" "$claude_dir/hooks" "$claude_dir/config"
 
   # CLAUDE.md imports @~/.claude/AGENTS.md, so both must be linked.
@@ -89,8 +89,6 @@ relink_claude_config() {
   link_file "$claude_src/statusline.js" "$claude_dir/statusline.js"
 
   local f
-  for f in "$claude_src/hooks/"*.js;  do [[ -f "$f" ]] && link_file "$f" "$claude_dir/hooks/$(basename "$f")";  done
-  for f in "$claude_src/config/"*;    do [[ -e "$f" ]] && link_file "$f" "$claude_dir/config/$(basename "$f")"; done
   for f in "$claude_src/agents/"*.md; do [[ -f "$f" ]] && link_file "$f" "$claude_dir/agents/$(basename "$f")"; done
   link_skills "$claude_dir/skills" "$agents_src/skills" "$claude_src/skills"
 
