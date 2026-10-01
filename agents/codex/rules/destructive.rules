@@ -1,0 +1,6 @@
+# Destructive-command guard for Codex. Codex loads every *.rules file in ~/.codex/rules/ and applies
+# the most restrictive matching decision, so these override allow entries in its own default.rules.
+# They match commands, not scripts or tools that delete data another way.
+prefix_rule(pattern = [["rm", "/bin/rm", "/usr/bin/rm"]], decision = "prompt")
+prefix_rule(pattern = ["git", "reset", "--hard"], decision = "forbidden")
+prefix_rule(pattern = ["git", "clean"], decision = "forbidden")

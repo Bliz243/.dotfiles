@@ -104,10 +104,15 @@ relink_codex_config() {
 
   [[ -d "$codex_src" ]] || { warn "No Codex config in dotfiles, skipping"; return; }
 
-  mkdir -p "$codex_dir" "$skills_dir"
-  cleanup_dangling_symlinks "$skills_dir"
+  mkdir -p "$codex_dir/rules" "$skills_dir"
+  cleanup_dangling_symlinks "$skills_dir" "$codex_dir/rules"
 
   link_file "$agents_src/AGENTS.md" "$codex_dir/AGENTS.md"
+  # Codex writes its own approvals to rules/default.rules, so only our named rule files are linked.
+  local f
+  for f in "$codex_src/rules/"*.rules; do
+    if [[ -f "$f" ]]; then link_file "$f" "$codex_dir/rules/$(basename "$f")"; fi
+  done
   link_skills "$skills_dir" "$agents_src/skills" "$codex_src/skills"
 
   # config.toml is machine-specific (project paths, MCP IPs): copy from template once, never overwrite.

@@ -161,7 +161,8 @@ fi
 # Test 12: Agent config linked for Claude Code and Codex, and never stowed into ~
 echo "Testing: Agent config links..."
 AGENT_OK=true
-for link in .claude/AGENTS.md .claude/CLAUDE.md .claude/settings.json .claude/statusline.js .codex/AGENTS.md; do
+for link in .claude/AGENTS.md .claude/CLAUDE.md .claude/settings.json .claude/statusline.js .codex/AGENTS.md \
+            .codex/rules/destructive.rules; do
     [[ -L ~/$link && -e ~/$link ]] || { echo "  Missing or dangling: ~/$link"; AGENT_OK=false; }
 done
 for skill in ~/.dotfiles/agents/skills/*/; do

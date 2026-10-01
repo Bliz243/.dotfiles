@@ -4,7 +4,7 @@ Personal dotfiles for WSL/Ubuntu and remote Linux servers: zsh, tmux, Neovim (La
 
 ## Layout
 - Top-level dotfiles are stowed into `~` with GNU stow; `.stow-local-ignore` lists what isn't.
-- `agents/` is symlinked into place by `scripts/lib/links.sh`, never stowed: `agents/AGENTS.md` → `~/.claude/AGENTS.md` and `~/.codex/AGENTS.md`; `agents/skills/` → `~/.claude/skills/` and `~/.agents/skills/`; `agents/claude/` → `~/.claude/` (`CLAUDE.md` is only an `@~/.claude/AGENTS.md` import); `agents/codex/config.toml.example` is copied once to `~/.codex/config.toml`.
+- `agents/` is symlinked into place by `scripts/lib/links.sh`, never stowed: `agents/AGENTS.md` → `~/.claude/AGENTS.md` and `~/.codex/AGENTS.md`; `agents/skills/` → `~/.claude/skills/` and `~/.agents/skills/`; `agents/claude/` → `~/.claude/` (`CLAUDE.md` is only an `@~/.claude/AGENTS.md` import); `agents/codex/rules/*.rules` → `~/.codex/rules/` (Codex's own `default.rules` stays local); `agents/codex/config.toml.example` is copied once to `~/.codex/config.toml`.
 - `scripts/install.sh` sets up a machine and `scripts/sync.sh` (the `dotsync` alias) re-applies; helpers live in `scripts/lib/`.
 
 ## Checks
